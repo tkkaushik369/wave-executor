@@ -98,17 +98,11 @@ export class CannonDebugRenderer {
 
 				if (mesh) {
 					// Get world position
-					body.quaternion.vmult(
-						body.shapeOffsets[j],
-						shapeWorldPosition
-					)
+					body.quaternion.vmult(body.shapeOffsets[j], shapeWorldPosition)
 					body.position.vadd(shapeWorldPosition, shapeWorldPosition)
 
 					// Get world quaternion
-					body.quaternion.mult(
-						body.shapeOrientations[j],
-						shapeWorldQuaternion
-					)
+					body.quaternion.mult(body.shapeOrientations[j], shapeWorldQuaternion)
 
 					// Copy to meshes
 					mesh.position.x = shapeWorldPosition.x
@@ -145,22 +139,16 @@ export class CannonDebugRenderer {
 		this._scaleMesh(mesh, shape)
 	}
 
-	private _typeMatch(
-		mesh: THREE.Mesh | THREE.Points,
-		shape: CANNON.Shape
-	): boolean {
+	private _typeMatch(mesh: THREE.Mesh | THREE.Points, shape: CANNON.Shape): boolean {
 		if (!mesh) {
 			return false
 		}
 		const geo: THREE.BufferGeometry = mesh.geometry
 		return (
-			(geo instanceof THREE.SphereGeometry &&
-				shape instanceof CANNON.Sphere) ||
+			(geo instanceof THREE.SphereGeometry && shape instanceof CANNON.Sphere) ||
 			(geo instanceof THREE.BoxGeometry && shape instanceof CANNON.Box) ||
-			(geo instanceof THREE.CylinderGeometry &&
-				shape instanceof CANNON.Cylinder) ||
-			(geo instanceof THREE.PlaneGeometry &&
-				shape instanceof CANNON.Plane) ||
+			(geo instanceof THREE.CylinderGeometry && shape instanceof CANNON.Cylinder) ||
+			(geo instanceof THREE.PlaneGeometry && shape instanceof CANNON.Plane) ||
 			shape instanceof CANNON.ConvexPolyhedron ||
 			(geo.id === shape.id && shape instanceof CANNON.Trimesh) ||
 			(geo.id === shape.id && shape instanceof CANNON.Heightfield)
@@ -199,10 +187,7 @@ export class CannonDebugRenderer {
 				break
 
 			case CANNON.Shape.types.PARTICLE:
-				mesh = new THREE.Points(
-					this._particleGeometry,
-					this._particleMaterial
-				)
+				mesh = new THREE.Points(this._particleGeometry, this._particleMaterial)
 				break
 
 			case CANNON.Shape.types.CONVEXPOLYHEDRON:
@@ -210,18 +195,14 @@ export class CannonDebugRenderer {
 				geometry = new THREE.BufferGeometry()
 				shape.id = geometry.id
 				points = []
-				for (
-					let i = 0; i < (shape as CANNON.ConvexPolyhedron).vertices.length; i += 1
-				) {
+				for (let i = 0; i < (shape as CANNON.ConvexPolyhedron).vertices.length; i += 1) {
 					const v = (shape as CANNON.ConvexPolyhedron).vertices[i]
 					points.push(new THREE.Vector3(v.x, v.y, v.z))
 				}
 				geometry.setFromPoints(points)
 
 				const indices = []
-				for (
-					let i = 0; i < (shape as CANNON.ConvexPolyhedron).faces.length; i++
-				) {
+				for (let i = 0; i < (shape as CANNON.ConvexPolyhedron).faces.length; i++) {
 					const face = (shape as CANNON.ConvexPolyhedron).faces[i]
 					const a = face[0]
 					for (let j = 1; j < face.length - 1; j++) {
@@ -241,9 +222,7 @@ export class CannonDebugRenderer {
 				geometry = new THREE.BufferGeometry()
 				shape.id = geometry.id
 				points = []
-				for (
-					let i = 0; i < (shape as CANNON.Trimesh).vertices.length; i += 3
-				) {
+				for (let i = 0; i < (shape as CANNON.Trimesh).vertices.length; i += 3) {
 					points.push(
 						new THREE.Vector3(
 							(shape as CANNON.Trimesh).vertices[i],
@@ -263,41 +242,16 @@ export class CannonDebugRenderer {
 				v0 = this.tmpVec0
 				v1 = this.tmpVec1
 				v2 = this.tmpVec2
-				for (
-					let xi = 0; xi < (shape as CANNON.Heightfield).data.length - 1; xi++
-				) {
-					for (
-						let yi = 0; yi < (shape as CANNON.Heightfield).data[xi].length - 1; yi++
-					) {
+				for (let xi = 0; xi < (shape as CANNON.Heightfield).data.length - 1; xi++) {
+					for (let yi = 0; yi < (shape as CANNON.Heightfield).data[xi].length - 1; yi++) {
 						for (let k = 0; k < 2; k++) {
-							;
-							(
-								shape as CANNON.Heightfield
-							).getConvexTrianglePillar(xi, yi, k === 0)
-							v0.copy(
-								(shape as CANNON.Heightfield).pillarConvex
-									.vertices[0]
-							)
-							v1.copy(
-								(shape as CANNON.Heightfield).pillarConvex
-									.vertices[1]
-							)
-							v2.copy(
-								(shape as CANNON.Heightfield).pillarConvex
-									.vertices[2]
-							)
-							v0.vadd(
-								(shape as CANNON.Heightfield).pillarOffset,
-								v0
-							)
-							v1.vadd(
-								(shape as CANNON.Heightfield).pillarOffset,
-								v1
-							)
-							v2.vadd(
-								(shape as CANNON.Heightfield).pillarOffset,
-								v2
-							)
+							;(shape as CANNON.Heightfield).getConvexTrianglePillar(xi, yi, k === 0)
+							v0.copy((shape as CANNON.Heightfield).pillarConvex.vertices[0])
+							v1.copy((shape as CANNON.Heightfield).pillarConvex.vertices[1])
+							v2.copy((shape as CANNON.Heightfield).pillarConvex.vertices[2])
+							v0.vadd((shape as CANNON.Heightfield).pillarOffset, v0)
+							v1.vadd((shape as CANNON.Heightfield).pillarOffset, v1)
+							v2.vadd((shape as CANNON.Heightfield).pillarOffset, v2)
 							points.push(
 								new THREE.Vector3(v0.x, v0.y, v0.z),
 								new THREE.Vector3(v1.x, v1.y, v1.z),
@@ -316,8 +270,14 @@ export class CannonDebugRenderer {
 		}
 
 		if (mesh && mesh.geometry) {
-			let edge = new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry), new THREE.LineBasicMaterial({ color: (mesh.material as THREE.MeshBasicMaterial).color, transparent: true }))
-			edge.name = "edge"
+			let edge = new THREE.LineSegments(
+				new THREE.EdgesGeometry(mesh.geometry),
+				new THREE.LineBasicMaterial({
+					color: (mesh.material as THREE.MeshBasicMaterial).color,
+					transparent: true,
+				})
+			)
+			edge.name = 'edge'
 			mesh.add(edge)
 			this.scene.add(mesh)
 		}
@@ -338,13 +298,7 @@ export class CannonDebugRenderer {
 
 			case CANNON.Shape.types.BOX:
 				halfExtents = (shape as CANNON.Box).halfExtents
-				mesh.scale.copy(
-					new THREE.Vector3(
-						halfExtents.x,
-						halfExtents.y,
-						halfExtents.z
-					)
-				)
+				mesh.scale.copy(new THREE.Vector3(halfExtents.x, halfExtents.y, halfExtents.z))
 				mesh.scale.multiplyScalar(2)
 				break
 
@@ -366,13 +320,13 @@ export class CannonDebugRenderer {
 	public showMesh(show: boolean) {
 		this._meshes.forEach((mesh) => {
 			mesh.visible = show
-		});
+		})
 	}
 
 	public clearMeshes() {
 		this._meshes.forEach((mesh) => {
-			this.scene.remove(mesh);
-		});
+			this.scene.remove(mesh)
+		})
 	}
 
 	public setWireframe(isSet: boolean) {
@@ -394,7 +348,7 @@ export class CannonDebugRenderer {
 		this._meshes.forEach((mesh) => {
 			mesh.traverse((obj: any) => {
 				if (obj.material instanceof THREE.LineBasicMaterial) {
-					obj.material.opacity = this.showEdges ? (value) : 0
+					obj.material.opacity = this.showEdges ? value : 0
 				}
 			})
 		})

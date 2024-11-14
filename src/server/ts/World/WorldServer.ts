@@ -1,11 +1,10 @@
 import * as THREE from 'three'
-import { WorldBase } from "./WorldBase"
+import { WorldBase } from './WorldBase'
 import { JSDOM } from 'jsdom'
 import fs from 'fs'
 import { Speaker } from './Spaker'
 
 export class WorldServer extends WorldBase {
-
 	modelCache: { [id: string]: any } = {}
 
 	constructor(updatePhysicsCallback: Function | null = null) {
@@ -29,10 +28,12 @@ export class WorldServer extends WorldBase {
 			return resPath
 		}
 
-		const dom = new JSDOM();
-		(global as any).window = dom.window;
-		(global as any).document = dom.window.document;
-		(global as any).HTMLImageElement = typeof window === 'undefined' ? Object : window.HTMLImageElement
+		if (typeof window === 'undefined') {
+			const dom = new JSDOM()
+			;(global as any).window = dom.window
+			;(global as any).document = dom.window.document
+			;(global as any).HTMLImageElement = Object
+		}
 
 		const data: string = fs.readFileSync(resPath, 'utf8')
 		const jsonObj = JSON.parse(data)

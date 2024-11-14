@@ -1,7 +1,4 @@
-import {
-	CharacterStateBase,
-	Falling,
-} from './_CharacterStateLibrary'
+import { CharacterStateBase, Falling } from './_CharacterStateLibrary'
 import { ICharacterState } from '../../Interfaces/ICharacterState'
 import { Character } from '../Character'
 
@@ -39,12 +36,11 @@ export class JumpIdle extends CharacterStateBase implements ICharacterState {
 			this.character.velocitySimulator.mass = 100
 			this.character.rotationSimulator.damping = 0.3
 
-			if ((this.character.rayResult.body !== null) && (this.character.rayResult.body.velocity.length() > 0)) {
+			if (this.character.rayResult.body !== null && this.character.rayResult.body.velocity.length() > 0) {
 				this.character.setArcadeVelocityInfluence(0, 0, 0)
 			} else {
 				this.character.setArcadeVelocityInfluence(0.3, 0, 0.3)
 			}
-
 		} else if (this.timer > 0.3 && this.character.rayHasHit) {
 			this.setAppropriateDropState()
 		} else if (this.animationEnded(timeStep)) {

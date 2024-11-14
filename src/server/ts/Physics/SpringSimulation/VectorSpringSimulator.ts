@@ -22,9 +22,7 @@ export class VectorSpringSimulator extends SimulatorBase {
 			// Initialize cache by pushing two frames
 			this.cache = []
 			for (let i = 0; i < 2; i++) {
-				this.cache.push(
-					new SimulationFrameVector(new THREE.Vector3(), new THREE.Vector3()),
-				)
+				this.cache.push(new SimulationFrameVector(new THREE.Vector3(), new THREE.Vector3()))
 			}
 		}
 	}
@@ -37,15 +35,13 @@ export class VectorSpringSimulator extends SimulatorBase {
 		// Initialize cache by pushing two frames
 		this.cache = []
 		for (let i = 0; i < 2; i++) {
-			this.cache.push(
-				new SimulationFrameVector(new THREE.Vector3(), new THREE.Vector3()),
-			)
+			this.cache.push(new SimulationFrameVector(new THREE.Vector3(), new THREE.Vector3()))
 		}
 	}
 
 	/**
 	 * Advances the simulation by given time step
-	 * @param {number} timeStep 
+	 * @param {number} timeStep
 	 */
 	public simulate(timeStep: number): void {
 		// Generate new frames

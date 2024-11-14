@@ -1,16 +1,10 @@
-import {
-	CharacterStateBase,
-	EndWalk,
-	JumpRunning,
-	Sprint,
-	Walk,
-} from './_CharacterStateLibrary'
+import { CharacterStateBase, EndWalk, JumpRunning, Sprint, Walk } from './_CharacterStateLibrary'
 import { ICharacterState } from '../../Interfaces/ICharacterState'
 import { Character } from '../Character'
 
 export class DropRunning extends CharacterStateBase implements ICharacterState {
 	state = 'DropRunning'
-	
+
 	constructor(character: Character) {
 		super(character)
 		// bind function

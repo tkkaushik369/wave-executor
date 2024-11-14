@@ -1,6 +1,6 @@
 import { MapConfigType, MapConfigFOType } from '../../'
-import { Example } from '../Example/ExampleScene';
-import { Test2Scene } from "./Test2Scene";
+import { Example } from '../Example/ExampleScene'
+import { Test2Scene } from './Test2Scene'
 
 export const Test2Config: MapConfigType = {
 	name: 'test2',
@@ -23,7 +23,6 @@ const car: MapConfigFOType = {
 	type: 'car',
 	subtype: 'car_test',
 }
-
 
 Test2Config.characters.push(character)
 Test2Config.vehicles.push(car)

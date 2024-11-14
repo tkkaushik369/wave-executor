@@ -4,7 +4,7 @@ import path from 'path'
 
 electronReload(__dirname, {
 	// electron: path.join(__dirname, 'node_modules', '.bin', 'electron'),
-	hardResetMethod: 'exit'
+	hardResetMethod: 'exit',
 })
 
 const createWindow = () => {
@@ -23,7 +23,7 @@ const createWindow = () => {
 		frame: false,
 		webPreferences: {
 			nodeIntegration: true,
-		}
+		},
 	})
 	let display = screen.getPrimaryDisplay()
 	let width = display.bounds.width

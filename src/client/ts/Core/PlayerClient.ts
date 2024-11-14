@@ -3,7 +3,6 @@ import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer'
 import { Player } from '../../../server/ts/Core/Player'
 
 export class PlayerClient extends Player {
-
 	isMe: boolean
 
 	constructor(sID: string, camera: THREE.PerspectiveCamera, domElement: HTMLElement | null, isMe: boolean) {

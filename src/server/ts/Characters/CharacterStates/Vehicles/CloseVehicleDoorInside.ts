@@ -1,10 +1,5 @@
-import {
-	CharacterStateBase,
-} from '../_CharacterStateLibrary'
-import {
-	Driving,
-	Sitting
-} from './_VehicleStateLibrary'
+import { CharacterStateBase } from '../_CharacterStateLibrary'
+import { Driving, Sitting } from './_VehicleStateLibrary'
 import { Character } from '../../Character'
 import { VehicleSeat } from '../../../Vehicles/VehicleSeat'
 import { Side } from '../../../Enums/Side'
@@ -42,8 +37,7 @@ export class CloseVehicleDoorInside extends CharacterStateBase {
 
 		if (this.timer > 0.4 && !this.hasClosedDoor) {
 			this.hasClosedDoor = true
-			if (this.seat.door !== null)
-				this.seat.door.close()
+			if (this.seat.door !== null) this.seat.door.close()
 		}
 
 		if (this.animationEnded(timeStep)) {

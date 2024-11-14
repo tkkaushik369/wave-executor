@@ -54,7 +54,8 @@ export class FollowTarget extends CharacterAIBase implements ICharacterAI {
 				viewVector.normalize()
 				let angle = Utility.getSignedAngleBetweenVectors(forward, viewVector)
 
-				let goingForward = forward.dot(Utility.threeVector(this.character.controlledObject.collision.velocity)) > 0
+				let goingForward =
+					forward.dot(Utility.threeVector(this.character.controlledObject.collision.velocity)) > 0
 				let speed = this.character.controlledObject.collision.velocity.length()
 
 				if (this.character.controlledObject !== null) {
@@ -98,7 +99,8 @@ export class FollowTarget extends CharacterAIBase implements ICharacterAI {
 			if (viewVector.length() > this.stopDistance) {
 				this.isTargetReached = false
 				this.setCharacterTriggerAction('up', true)
-			} else { // Stand still
+			} else {
+				// Stand still
 				this.isTargetReached = true
 				this.setCharacterTriggerAction('up', false)
 
@@ -115,7 +117,6 @@ export class FollowTarget extends CharacterAIBase implements ICharacterAI {
 
 	public setVehicleTriggerAction(action: string, isPressed: boolean) {
 		super.setVehicleTriggerAction(action, isPressed)
-		if (this.character.controlledObject !== null)
-			this.character.controlledObject.triggerAction(action, isPressed)
+		if (this.character.controlledObject !== null) this.character.controlledObject.triggerAction(action, isPressed)
 	}
 }

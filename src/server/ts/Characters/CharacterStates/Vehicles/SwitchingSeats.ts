@@ -1,11 +1,6 @@
 import * as THREE from 'three'
-import {
-	CharacterStateBase,
-} from '../_CharacterStateLibrary'
-import {
-	Driving,
-	Sitting
-} from './_VehicleStateLibrary'
+import { CharacterStateBase } from '../_CharacterStateLibrary'
+import { Driving, Sitting } from './_VehicleStateLibrary'
 import { Character } from '../../Character'
 import { VehicleSeat } from '../../../Vehicles/VehicleSeat'
 import { Side } from '../../../Enums/Side'
@@ -43,8 +38,7 @@ export class SwitchingSeats extends CharacterStateBase {
 
 		if (side === Side.Left) {
 			this.playAnimation('sitting_shift_left', 0.1)
-		}
-		else if (side === Side.Right) {
+		} else if (side === Side.Right) {
 			this.playAnimation('sitting_shift_right', 0.1)
 		}
 
@@ -66,13 +60,16 @@ export class SwitchingSeats extends CharacterStateBase {
 			} else if (this.toSeat.type === SeatType.Passenger) {
 				this.character.setState(new Sitting(this.character, this.toSeat))
 			}
-		}
-		else {
+		} else {
 			let factor = this.timer / this.animationLength
 			let sineFactor = Utility.easeInOutSine(factor)
 
 			let lerpPosition = new THREE.Vector3().lerpVectors(this.startPosition, this.endPosition, sineFactor)
-			if ((this.character.world !== null) && (!this.character.world.isClient || (this.character.world.isClient && (this.character.world.worldId === null)))) {
+			if (
+				this.character.world !== null &&
+				(!this.character.world.isClient ||
+					(this.character.world.isClient && this.character.world.worldId === null))
+			) {
 				this.character.setPosition(lerpPosition.x, lerpPosition.y, lerpPosition.z)
 
 				this.character.quaternion.slerp(this.endRotation, sineFactor)

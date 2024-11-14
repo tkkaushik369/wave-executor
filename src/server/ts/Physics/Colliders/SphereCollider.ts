@@ -11,7 +11,7 @@ export class SphereCollider implements ICollider {
 			mass: 0,
 			position: new CANNON.Vec3(),
 			radius: 0.3,
-			friction: 0.3
+			friction: 0.3,
 		}
 		options = Utility.setDefaults(options, defaults)
 		this.options = options
@@ -25,7 +25,7 @@ export class SphereCollider implements ICollider {
 		let physSphere = new CANNON.Body({
 			mass: options.mass,
 			position: options.position,
-			shape
+			shape,
 		})
 		physSphere.material = mat
 

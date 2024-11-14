@@ -6,18 +6,18 @@ import { TestConfig } from './Configs/Test'
 import { Test2Config } from './Configs/Test2'
 
 export type MapConfigFOType = {
-	objCaller: string | BaseScene,
-	type: string,
-	subtype: string | null,
+	objCaller: string | BaseScene
+	type: string
+	subtype: string | null
 }
 
 export type MapConfigType = {
-	name: string,
-	isCallback: boolean,
+	name: string
+	isCallback: boolean
 	mapCaller: string | BaseScene
-	isLaunched: boolean,
-	characters: MapConfigFOType[],
-	vehicles: MapConfigFOType[],
+	isLaunched: boolean
+	characters: MapConfigFOType[]
+	vehicles: MapConfigFOType[]
 }
 
 export var MapConfig: { [id: string]: MapConfigType } = {}

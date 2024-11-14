@@ -13,7 +13,7 @@ export class BoxCollider implements ICollider {
 			mass: 0,
 			position: new THREE.Vector3(),
 			size: new THREE.Vector3(0.3, 0.3, 0.3),
-			friction: 0.3
+			friction: 0.3,
 		}
 		options = Utility.setDefaults(options, defaults)
 		this.debugModel = null
@@ -21,7 +21,6 @@ export class BoxCollider implements ICollider {
 
 		options.position = new CANNON.Vec3(options.position.x, options.position.y, options.position.z)
 		options.size = new CANNON.Vec3(options.size.x, options.size.y, options.size.z)
-
 
 		let shape = new CANNON.Box(options.size)
 
@@ -32,7 +31,7 @@ export class BoxCollider implements ICollider {
 		let physBox = new CANNON.Body({
 			mass: options.mass,
 			position: options.position,
-			shape
+			shape,
 		})
 
 		physBox.material = mat

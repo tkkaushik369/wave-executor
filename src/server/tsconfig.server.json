@@ -2,7 +2,7 @@
 	"compilerOptions": {
 		"target": "ES2019",
 		"module": "commonjs",
-		"outDir": "../../dist/electronApp",
+		"outDir": "../../dist/server",
 		"esModuleInterop": true,
 		"resolveJsonModule": true,
 		"skipLibCheck": true

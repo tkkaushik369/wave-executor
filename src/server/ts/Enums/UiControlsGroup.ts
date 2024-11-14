@@ -1,14 +1,14 @@
 export enum UiControlsGroup {
-    //
-    None,
-    
-    //
-    CameraOperator,
-    Character,
-    Sitting,
+	//
+	None,
 
-    // Vehicle
-    Car,
-    Helicopter,
-    Airplane,
+	//
+	CameraOperator,
+	Character,
+	Sitting,
+
+	// Vehicle
+	Car,
+	Helicopter,
+	Airplane,
 }

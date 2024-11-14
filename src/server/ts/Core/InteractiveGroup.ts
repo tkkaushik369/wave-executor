@@ -7,7 +7,6 @@ const _event = { type: '', data: _pointer }
 const _raycaster = new THREE.Raycaster()
 
 export class InteractiveGroup extends THREE.Group {
-
 	isInteracting: boolean = false
 	world: WorldBase
 
@@ -17,21 +16,19 @@ export class InteractiveGroup extends THREE.Group {
 	}
 
 	listenToPointerEvents(renderer: THREE.WebGLRenderer, camera: THREE.PerspectiveCamera) {
-
 		const scope = this
 		const raycaster = new THREE.Raycaster()
 		const element = renderer.domElement
 
 		function onPointerEvent(event: MouseEvent) {
 			event.stopPropagation()
-			if(scope.world.player === null) return
+			if (scope.world.player === null) return
 
 			const rect = renderer.domElement.getBoundingClientRect()
 
-
-			if(!scope.world.player.inputManager.isLocked) {
-				_pointer.x = (event.clientX - rect.left) / rect.width * 2 - 1
-				_pointer.y = - (event.clientY - rect.top) / rect.height * 2 + 1
+			if (!scope.world.player.inputManager.isLocked) {
+				_pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
+				_pointer.y = (-(event.clientY - rect.top) / rect.height) * 2 + 1
 			} else {
 				_pointer.x = 0
 				_pointer.y = 0
@@ -67,10 +64,10 @@ export class InteractiveGroup extends THREE.Group {
 	listenToXRControllerEvents(controller: any) {
 		const scope = this
 		const events: { [id: string]: string } = {
-			'move': 'mousemove',
-			'select': 'click',
-			'selectstart': 'mousedown',
-			'selectend': 'mouseup'
+			move: 'mousemove',
+			select: 'click',
+			selectstart: 'mousedown',
+			selectend: 'mouseup',
 		}
 
 		function onXRControllerEvent(event: any) {

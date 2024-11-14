@@ -23,7 +23,6 @@ import { UiControls, UiControlsType } from '../../../server/ts/Constants'
 import { SpeakerClient } from './SpeakerClient'
 
 export class WorldClient extends WorldBase {
-
 	private parentDom: HTMLDivElement
 	private controlsDom: HTMLDivElement
 	public renderer: THREE.WebGLRenderer
@@ -56,7 +55,13 @@ export class WorldClient extends WorldBase {
 	public cannonDebugRenderer: CannonDebugRenderer
 	private updateAnimationCallback: Function | null = null
 
-	constructor(controlsDom: HTMLDivElement, parentDom: HTMLDivElement, updatateCallback: Function, launchMapCallback: Function, launchScenarioCallback: Function) {
+	constructor(
+		controlsDom: HTMLDivElement,
+		parentDom: HTMLDivElement,
+		updatateCallback: Function,
+		launchMapCallback: Function,
+		launchScenarioCallback: Function
+	) {
 		super(true)
 
 		// functions bind
@@ -84,7 +89,7 @@ export class WorldClient extends WorldBase {
 
 		// init
 		this.controlsDom = controlsDom
-		this.parentDom = (parentDom !== undefined) ? parentDom : (document.body as HTMLDivElement)
+		this.parentDom = parentDom !== undefined ? parentDom : (document.body as HTMLDivElement)
 		this.updateAnimationCallback = updatateCallback
 		this.launchMapCallback = launchMapCallback
 		this.launchScenarioCallback = launchScenarioCallback
@@ -99,8 +104,7 @@ export class WorldClient extends WorldBase {
 		this.renderer.toneMappingExposure = 0.7
 		this.renderer.shadowMap.enabled = true
 		this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
-		if (this.scene.fog !== null)
-			this.renderer.setClearColor(this.scene.fog.color, 0.1)
+		if (this.scene.fog !== null) this.renderer.setClearColor(this.scene.fog.color, 0.1)
 		this.parentDom.appendChild(this.renderer.domElement)
 		this.renderer.setAnimationLoop(this.animate)
 
@@ -130,19 +134,18 @@ export class WorldClient extends WorldBase {
 		hemiLight.position.set(0, 50, 0)
 		this.scene.add(hemiLight)
 
-
 		// Sky
 		this.sun = new THREE.Vector3()
 		this.sky = new Sky()
 		this.sky.scale.setScalar(450000)
 		this.effectController = {
 			turbidity: 1,
-			rayleigh: 0.750,
+			rayleigh: 0.75,
 			mieCoefficient: 0.1,
 			mieDirectionalG: 0.9,
 			elevation: 60,
 			azimuth: 45,
-			exposure: this.renderer.toneMappingExposure
+			exposure: this.renderer.toneMappingExposure,
 		}
 		this.scene.add(this.sky)
 
@@ -163,14 +166,17 @@ export class WorldClient extends WorldBase {
 		})
 		this.csm.fade = true
 
-
 		// Debug World
 		this.cannonDebugRenderer = new CannonDebugRenderer(this.scene, this.world, {})
 
-		{ // Post Processing
+		{
+			// Post Processing
 			//
 			const size = this.renderer.getDrawingBufferSize(new THREE.Vector2())
-			const renderTarget = new THREE.WebGLRenderTarget(size.width, size.height, { samples: 4, type: THREE.HalfFloatType })
+			const renderTarget = new THREE.WebGLRenderTarget(size.width, size.height, {
+				samples: 4,
+				type: THREE.HalfFloatType,
+			})
 			this.composer = new EffectComposer(this.renderer, renderTarget)
 
 			//
@@ -184,13 +190,17 @@ export class WorldClient extends WorldBase {
 			this.fxaaPass.material['uniforms'].resolution.value.y = 1 / (window.innerHeight * pixelRatio)
 
 			//
-			this.outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight), this.scene, this.camera)
+			this.outlinePass = new OutlinePass(
+				new THREE.Vector2(window.innerWidth, window.innerHeight),
+				this.scene,
+				this.camera
+			)
 			this.outlinePass.edgeStrength = 2.0
 			this.outlinePass.edgeGlow = 0.0
 			this.outlinePass.edgeThickness = 0.5
 			this.outlinePass.pulsePeriod = 0.0
 			const textureLoader = new THREE.TextureLoader()
-			textureLoader.load('/images/tri_pattern.jpg', (texture) => {
+			textureLoader.load('./images/tri_pattern.jpg', (texture) => {
 				this.outlinePass.patternTexture = texture
 				texture.wrapS = THREE.RepeatWrapping
 				texture.wrapT = THREE.RepeatWrapping
@@ -221,7 +231,9 @@ export class WorldClient extends WorldBase {
 		// cannonSettings.addBinding(this.settings, 'Debug_Physics_Engine').on('change', this.debugPhysicsEngineFunc)
 		cannonSettings.addBinding(this.settings, 'Debug_Physics').on('change', this.debugPhysicsFunc)
 		// cannonSettings.addBinding(this.settings, 'Debug_Physics_Wireframe').on('change', this.debugPhysicsWireframeFunc)
-		cannonSettings.addBinding(this.settings, 'Debug_Physics_MeshOpacity', { min: 0, max: 1 }).on('change', this.debugPhysicsOpacityFunc)
+		cannonSettings
+			.addBinding(this.settings, 'Debug_Physics_MeshOpacity', { min: 0, max: 1 })
+			.on('change', this.debugPhysicsOpacityFunc)
 		cannonSettings.addBinding(this.settings, 'Debug_Physics_MeshEdges').on('change', this.debugPhysicsEdgesFunc)
 
 		let debugSettings = folderSettings.addFolder({ title: 'Helpers', expanded: false })
@@ -237,17 +249,40 @@ export class WorldClient extends WorldBase {
 
 		let inputFolder = folderSettings.addFolder({ title: 'Input', expanded: false })
 		inputFolder.addBinding(this.settings, 'Pointer_Lock').on('change', this.pointLockFunc)
-		inputFolder.addBinding(this.settings, 'Mouse_Sensitivity', { min: 0.01, max: 0.5, step: 0.01, label: 'Mouse' }).on('change', this.mouseSensitivityFunc)
-		inputFolder.addBinding(this.settings, 'Time_Scale', { min: -0.2, max: 1.2, readonly: true, view: 'graph', /* disabled: true */ }).on('change', this.timeScaleFunc)
+		inputFolder
+			.addBinding(this.settings, 'Mouse_Sensitivity', { min: 0.01, max: 0.5, step: 0.01, label: 'Mouse' })
+			.on('change', this.mouseSensitivityFunc)
+		inputFolder
+			.addBinding(this.settings, 'Time_Scale', {
+				min: -0.2,
+				max: 1.2,
+				readonly: true,
+				view: 'graph' /* disabled: true */,
+			})
+			.on('change', this.timeScaleFunc)
 
 		let sunFolder = folderSettings.addFolder({ title: 'Sun', expanded: false })
-		sunFolder.addBinding(this.effectController, 'turbidity', { min: 0.0, max: 20.0, step: 0.1 }).on('change', this.sunGuiChanged)
-		sunFolder.addBinding(this.effectController, 'rayleigh', { min: 0.0, max: 4, step: 0.001 }).on('change', this.sunGuiChanged)
-		sunFolder.addBinding(this.effectController, 'mieCoefficient', { min: 0.0, max: 0.1, step: 0.001 }).on('change', this.sunGuiChanged)
-		sunFolder.addBinding(this.effectController, 'mieDirectionalG', { min: 0.0, max: 1, step: 0.001 }).on('change', this.sunGuiChanged)
-		sunFolder.addBinding(this.effectController, 'elevation', { min: -90, max: 90, step: 0.1 }).on('change', this.sunGuiChanged)
-		sunFolder.addBinding(this.effectController, 'azimuth', { min: - 180, max: 180, step: 0.1 }).on('change', this.sunGuiChanged)
-		sunFolder.addBinding(this.effectController, 'exposure', { min: 0, max: 1, step: 0.0001 }).on('change', this.sunGuiChanged)
+		sunFolder
+			.addBinding(this.effectController, 'turbidity', { min: 0.0, max: 20.0, step: 0.1 })
+			.on('change', this.sunGuiChanged)
+		sunFolder
+			.addBinding(this.effectController, 'rayleigh', { min: 0.0, max: 4, step: 0.001 })
+			.on('change', this.sunGuiChanged)
+		sunFolder
+			.addBinding(this.effectController, 'mieCoefficient', { min: 0.0, max: 0.1, step: 0.001 })
+			.on('change', this.sunGuiChanged)
+		sunFolder
+			.addBinding(this.effectController, 'mieDirectionalG', { min: 0.0, max: 1, step: 0.001 })
+			.on('change', this.sunGuiChanged)
+		sunFolder
+			.addBinding(this.effectController, 'elevation', { min: -90, max: 90, step: 0.1 })
+			.on('change', this.sunGuiChanged)
+		sunFolder
+			.addBinding(this.effectController, 'azimuth', { min: -180, max: 180, step: 0.1 })
+			.on('change', this.sunGuiChanged)
+		sunFolder
+			.addBinding(this.effectController, 'exposure', { min: 0, max: 1, step: 0.0001 })
+			.on('change', this.sunGuiChanged)
 
 		// Sync Server
 		let syncFolder = folderSettings.addFolder({ title: 'SYNC', expanded: false })
@@ -257,16 +292,14 @@ export class WorldClient extends WorldBase {
 		// World Scene Folder
 		let sceneFolder = this.gui.addFolder({ title: 'Scenes', expanded: true })
 		this.mapGUIFolder = sceneFolder.addTab({
-			pages: [
-				{ title: 'Map' },
-				{ title: 'Scenarios' },
-				{ title: 'World' },
-			]
+			pages: [{ title: 'Map' }, { title: 'Scenarios' }, { title: 'World' }],
 		})
 
 		// Maps
 		Object.keys(this.maps).forEach((key) => {
-			this.mapGUIFolder.pages[0].addButton({ title: key }).on('click', (ev: any) => { this.maps[key]() })
+			this.mapGUIFolder.pages[0].addButton({ title: key }).on('click', (ev: any) => {
+				this.maps[key]()
+			})
 		})
 
 		// Scenarios
@@ -293,7 +326,6 @@ export class WorldClient extends WorldBase {
 			multiline: true,
 			rows: 5,
 		}) */
-
 
 		// Resize
 		window.addEventListener('resize', this.onWindowResize, false)
@@ -337,7 +369,8 @@ export class WorldClient extends WorldBase {
 				if (child.type === 'Mesh') {
 					this.csm.setupMaterial(child.material)
 
-					if (child.material.name === 'ocean') { // only sketchbook
+					if (child.material.name === 'ocean') {
+						// only sketchbook
 						this.oceans.push(new Ocean(child, this))
 					}
 				}
@@ -461,11 +494,11 @@ export class WorldClient extends WorldBase {
 	}
 
 	private togglePingsFunc(en: { value: boolean }) {
-		(document.getElementById("pingStats") as HTMLDivElement).style.display = en.value ? "block" : "none"
+		;(document.getElementById('pingStats') as HTMLDivElement).style.display = en.value ? 'block' : 'none'
 	}
 
 	private toggleControlsFunc(en: { value: boolean }) {
-		this.controlsDom.style.display = en.value ? "block" : "none"
+		this.controlsDom.style.display = en.value ? 'block' : 'none'
 	}
 
 	private togglePostFXAA(en: { value: boolean }) {
@@ -477,13 +510,11 @@ export class WorldClient extends WorldBase {
 	}
 
 	private pointLockFunc(en: { value: boolean }) {
-		if (this.player !== null)
-			this.player.inputManager.setPointerLock(en.value)
+		if (this.player !== null) this.player.inputManager.setPointerLock(en.value)
 	}
 
 	private mouseSensitivityFunc(en: { value: number }) {
-		if (this.player !== null)
-			this.player.cameraOperator.setSensitivity(en.value * 0.7, en.value * 0.7)
+		if (this.player !== null) this.player.cameraOperator.setSensitivity(en.value * 0.7, en.value * 0.7)
 	}
 
 	private timeScaleFunc(en: { value: number }) {
@@ -521,7 +552,7 @@ export class WorldClient extends WorldBase {
 		// this.gui.refresh()
 		this.csm.update()
 		this.oceans.forEach((ocean) => {
-			ocean.update(this.timeScaleTarget * 1.0 / 60.0)
+			ocean.update((this.timeScaleTarget * 1.0) / 60.0)
 		})
 
 		{
@@ -546,10 +577,8 @@ export class WorldClient extends WorldBase {
 		this.stats.update()
 		if (this.settings.Debug_Physics) this.cannonDebugRenderer.update()
 
-		if (this.settings.PostProcess)
-			this.composer.render()
-		else
-			this.renderer.render(this.scene, this.camera)
+		if (this.settings.PostProcess) this.composer.render()
+		else this.renderer.render(this.scene, this.camera)
 		this.labelRenderer.render(this.scene, this.camera)
 	}
 }

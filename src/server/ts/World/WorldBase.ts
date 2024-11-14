@@ -18,7 +18,6 @@ import { Water } from './Water'
 import { BaseScene } from './BaseScene'
 
 export abstract class WorldBase {
-
 	public worldId: string | null = null
 	public physicsFrameRate: number
 	public physicsFrameTime: number
@@ -54,7 +53,7 @@ export abstract class WorldBase {
 	public sceneObjects: THREE.Object3D[]
 	public worldObjects: CANNON.Body[]
 
-	public chatData: { from: string, message: string }[]
+	public chatData: { from: string; message: string }[]
 
 	// server
 	protected updatePhysicsCallback: Function | null
@@ -177,7 +176,7 @@ export abstract class WorldBase {
 	}
 
 	public getGLTF(path: string, callback: Function) {
-		return this.isClient ? ('./models/' + path) : ('./dist/client/models/' + path + '.json')
+		return this.isClient ? './models/' + path : './dist/client/models/' + path + '.json'
 	}
 
 	public add(worldEntity: IWorldEntity): void {
@@ -192,7 +191,7 @@ export abstract class WorldBase {
 
 	public registerUpdatable(registree: IUpdatable): void {
 		this.updatables.push(registree)
-		this.updatables.sort((a, b) => (a.updateOrder > b.updateOrder) ? 1 : -1)
+		this.updatables.sort((a, b) => (a.updateOrder > b.updateOrder ? 1 : -1))
 	}
 
 	public unregisterUpdatable(registree: IUpdatable): void {
@@ -227,7 +226,7 @@ export abstract class WorldBase {
 	}
 
 	public addWorldObject(object: CANNON.Body) {
-		if (!this.settings.Debug_Physics_Engine && (this.isClient && this.worldId !== null)) return
+		if (!this.settings.Debug_Physics_Engine && this.isClient && this.worldId !== null) return
 		if (_.includes(this.worldObjects, object)) return
 		this.worldObjects.push(object)
 		this.world.addBody(object)
@@ -246,8 +245,11 @@ export abstract class WorldBase {
 
 		switch (this.lastMapID) {
 			case 'sketchbook': {
-				inside = position.x > -211.882 && position.x < 211.882 &&
-					position.z > -169.098 && position.z < 153.232 &&
+				inside =
+					position.x > -211.882 &&
+					position.x < 211.882 &&
+					position.z > -169.098 &&
+					position.z < 153.232 &&
 					position.y > 0.107
 				belowSeaLevel = position.y < 14.989
 				break
@@ -255,8 +257,11 @@ export abstract class WorldBase {
 			default: {
 				let equi = new THREE.Vector3().copy(this.boxSize)
 				equi = equi.multiplyScalar(2)
-				inside = position.x > -equi.x && position.x < equi.x &&
-					position.z > -equi.z && position.z < equi.z &&
+				inside =
+					position.x > -equi.x &&
+					position.x < equi.x &&
+					position.z > -equi.z &&
+					position.z < equi.z &&
 					position.y > -equi.y
 				belowSeaLevel = position.y < equi.y
 				break
@@ -377,7 +382,8 @@ export abstract class WorldBase {
 
 					if (child.material.name === 'ocean') {
 						if (false) {
-							const width = 100, length = 100
+							const width = 100,
+								length = 100
 							const water = new Water(new THREE.PlaneGeometry(width, length, 100, 100), {
 								textureWidth: width,
 								textureHeight: length,
@@ -392,9 +398,9 @@ export abstract class WorldBase {
 								waterColor: 0x001e0f,
 								distortionScale: 8,
 								fog: this.scene.fog !== undefined,
-								side: THREE.DoubleSide
+								side: THREE.DoubleSide,
 							})
-							water.uID = "test"
+							water.uID = 'test'
 							water.rotateX(-Math.PI / 2)
 							water.position.set(110, 25, -160)
 							water.addFloaters(8)
@@ -407,7 +413,9 @@ export abstract class WorldBase {
 					if (child.userData.data === 'physics') {
 						if (child.userData.hasOwnProperty('type')) {
 							if (child.userData.type === 'box') {
-								let phys = new BoxCollider({ size: new THREE.Vector3(child.scale.x, child.scale.y, child.scale.z) })
+								let phys = new BoxCollider({
+									size: new THREE.Vector3(child.scale.x, child.scale.y, child.scale.z),
+								})
 								phys.body.position.copy(Utility.cannonVector(child.position))
 								phys.body.quaternion.copy(Utility.cannonQuat(child.quaternion))
 								phys.body.updateAABB()
@@ -449,10 +457,7 @@ export abstract class WorldBase {
 				break
 			}
 		}
-		if (isLaunmch)
-			if (defaultScenarioID !== null)
-				this.launchScenario(defaultScenarioID, false)
-
+		if (isLaunmch) if (defaultScenarioID !== null) this.launchScenario(defaultScenarioID, false)
 	}
 
 	public launchScenario(scenarioID: string | null, isCallback: boolean): void {
@@ -474,9 +479,15 @@ export abstract class WorldBase {
 						Object.keys(this.users).forEach((sID) => {
 							if (this.users[sID] !== undefined) {
 								this.users[sID].inputManager.onKeyDown({ code: 'w' } as KeyboardEvent)
-								this.users[sID].inputManager.update(this.physicsFrameTime * this.settings.Time_Scale, this.physicsFrameTime)
+								this.users[sID].inputManager.update(
+									this.physicsFrameTime * this.settings.Time_Scale,
+									this.physicsFrameTime
+								)
 								this.users[sID].inputManager.onKeyUp({ code: 'w' } as KeyboardEvent)
-								this.users[sID].inputManager.update(this.physicsFrameTime * this.settings.Time_Scale, this.physicsFrameTime)
+								this.users[sID].inputManager.update(
+									this.physicsFrameTime * this.settings.Time_Scale,
+									this.physicsFrameTime
+								)
 							}
 						})
 					}
@@ -487,11 +498,10 @@ export abstract class WorldBase {
 
 	public restartScenario(): void {
 		if (this.lastScenarioID !== null) {
-			if (this.isClient)
-				document.exitPointerLock()
+			if (this.isClient) document.exitPointerLock()
 			this.launchScenario(this.lastScenarioID, false)
 		} else {
-			console.warn('Can\'t restart scenario. Last scenarioID is undefined.')
+			console.warn("Can't restart scenario. Last scenarioID is undefined.")
 		}
 	}
 
@@ -548,20 +558,22 @@ export abstract class WorldBase {
 
 		this.requestDelta = this.worldClock.getDelta()
 
-		let unscaledTimeStep = (this.requestDelta + this.logicDelta)
+		let unscaledTimeStep = this.requestDelta + this.logicDelta
 		let timeStep = unscaledTimeStep * this.settings.Time_Scale
 		timeStep = Math.min(timeStep, 1 / 30)
 
-		if (this.settings.Debug_Physics_Engine || !this.isClient || (this.isClient && (this.worldId === null)))
+		if (this.settings.Debug_Physics_Engine || !this.isClient || (this.isClient && this.worldId === null))
 			this.updatePhysics(timeStep, unscaledTimeStep)
 
 		// Update registred objects
-		if (!this.isClient || (this.isClient && (this.worldId == null))) {
-			this.updatables.forEach((entity) => { entity.update(timeStep, unscaledTimeStep) })
+		if (!this.isClient || (this.isClient && this.worldId == null)) {
+			this.updatables.forEach((entity) => {
+				entity.update(timeStep, unscaledTimeStep)
+			})
 
 			// Sun Update
-			this.sunConf.elevation += (Math.sign(this.sunConf.azimuth)) * this.timeScaleTarget * 0.1
-			if ((this.sunConf.elevation >= 90) || (this.sunConf.elevation <= -90))
+			this.sunConf.elevation += Math.sign(this.sunConf.azimuth) * this.timeScaleTarget * 0.1
+			if (this.sunConf.elevation >= 90 || this.sunConf.elevation <= -90)
 				this.sunConf.azimuth = -this.sunConf.azimuth
 		} else {
 			this.characters.forEach((char) => {
@@ -571,7 +583,7 @@ export abstract class WorldBase {
 			this.vehicles.forEach((vehi) => {
 				vehi.update(timeStep)
 			})
-			if ((this.player !== null) && !this.settings.SyncInputs) {
+			if (this.player !== null && !this.settings.SyncInputs) {
 				this.player.inputManager.update(timeStep, unscaledTimeStep)
 				this.player.cameraOperator.update(timeStep, unscaledTimeStep)
 			}
@@ -589,12 +601,10 @@ export abstract class WorldBase {
 		this.sinceLastFrame += this.requestDelta + this.logicDelta
 		this.sinceLastFrame %= interval
 
-		if (this.updatePhysicsCallback !== null)
-			this.updatePhysicsCallback(this.worldId)
+		if (this.updatePhysicsCallback !== null) this.updatePhysicsCallback(this.worldId)
 	}
 
 	private updatePhysics(timeStep: number, unscaledTimeStep: number) {
-
 		if (this.doPhysics) {
 			this.world.step(this.physicsFrameTime, timeStep)
 		}

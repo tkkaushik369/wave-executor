@@ -1,11 +1,11 @@
 import * as THREE from 'three'
 
 export type SceneType = {
-	scene: THREE.Scene,
+	scene: THREE.Scene
 	animations: any[]
 }
 export type MeshType = {
-	scene: THREE.Mesh,
+	scene: THREE.Mesh
 	animations: any[]
 }
 
@@ -48,23 +48,30 @@ export abstract class BaseScene {
 		switch (type) {
 			case 'car': {
 				switch (subtype) {
-					case 'car_test': return { scene: this.car, animations: this.carAnimations }
-					default: return { scene: this.car, animations: this.carAnimations }
+					case 'car_test':
+						return { scene: this.car, animations: this.carAnimations }
+					default:
+						return { scene: this.car, animations: this.carAnimations }
 				}
 			}
 			case 'heli': {
 				switch (subtype) {
-					case 'heli_test': return { scene: this.heli, animations: this.heliAnimations }
-					default: return { scene: this.heli, animations: this.heliAnimations }
+					case 'heli_test':
+						return { scene: this.heli, animations: this.heliAnimations }
+					default:
+						return { scene: this.heli, animations: this.heliAnimations }
 				}
 			}
 			case 'airplane': {
 				switch (subtype) {
-					case 'airplane_test': return { scene: this.airplane, animations: this.airplaneAnimations }
-					default: return { scene: this.airplane, animations: this.airplaneAnimations }
+					case 'airplane_test':
+						return { scene: this.airplane, animations: this.airplaneAnimations }
+					default:
+						return { scene: this.airplane, animations: this.airplaneAnimations }
 				}
 			}
-			default: return { scene: this.car, animations: this.carAnimations }
+			default:
+				return { scene: this.car, animations: this.carAnimations }
 		}
 	}
 }

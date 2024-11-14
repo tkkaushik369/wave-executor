@@ -1,6 +1,4 @@
-import {
-	CharacterStateBase,
-} from '../_CharacterStateLibrary'
+import { CharacterStateBase } from '../_CharacterStateLibrary'
 import { Character } from '../../Character'
 import { VehicleSeat } from '../../../Vehicles/VehicleSeat'
 import { CloseVehicleDoorInside } from './_VehicleStateLibrary'
@@ -28,7 +26,11 @@ export class Driving extends CharacterStateBase {
 		await super.update(timeStep)
 		if (this.seat.door === null) return
 
-		if (!this.seat.door.achievingTargetRotation && this.seat.door.rotation > 0 && this.seat.vehicle.noDirectionPressed()) {
+		if (
+			!this.seat.door.achievingTargetRotation &&
+			this.seat.door.rotation > 0 &&
+			this.seat.vehicle.noDirectionPressed()
+		) {
 			this.character.setState(new CloseVehicleDoorInside(this.character, this.seat))
 		}
 	}

@@ -1,4 +1,4 @@
-import * as  THREE from 'three'
+import * as THREE from 'three'
 import { InteractiveGroup } from '../Core/InteractiveGroup'
 import { IWorldEntity } from '../Interfaces/IWorldEntity'
 import { INetwork } from '../Interfaces/INetwork'
@@ -18,10 +18,10 @@ export class Speaker extends THREE.Object3D implements IWorldEntity, INetwork, I
 	interractiveGroup: InteractiveGroup | null
 
 	audio: {
-		dom: HTMLAudioElement | null,
-		domui: HTMLDivElement | null,
-		source: HTMLSourceElement | null,
-		posaudio: THREE.PositionalAudio | null,
+		dom: HTMLAudioElement | null
+		domui: HTMLDivElement | null
+		source: HTMLSourceElement | null
+		posaudio: THREE.PositionalAudio | null
 	}
 
 	constructor() {
@@ -36,10 +36,13 @@ export class Speaker extends THREE.Object3D implements IWorldEntity, INetwork, I
 			dom: null,
 			domui: null,
 			source: null,
-			posaudio: null
+			posaudio: null,
 		}
 
-		const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 4), new THREE.MeshPhongMaterial({ color: 0xffff00, wireframe: true }))
+		const mesh = new THREE.Mesh(
+			new THREE.SphereGeometry(0.5, 8, 4),
+			new THREE.MeshPhongMaterial({ color: 0xffff00, wireframe: true })
+		)
 		mesh.position.set(0, 1, 0)
 		this.add(mesh)
 	}
@@ -55,7 +58,7 @@ export class Speaker extends THREE.Object3D implements IWorldEntity, INetwork, I
 		audioDom.style.display = 'none'
 
 		const sourceDom = document.createElement('source')
-		sourceDom.src = 'audios/358232_j_s_song.mp3'
+		sourceDom.src = './audios/358232_j_s_song.mp3'
 		sourceDom.type = 'audio/wav'
 
 		let domui = document.createElement('div')
@@ -81,8 +84,8 @@ export class Speaker extends THREE.Object3D implements IWorldEntity, INetwork, I
 			input.style.left = '50%'
 			input.style.transform = 'translateX(-50%)'
 			input.style.bottom = '20px'
-			input.style.width = "60px"
-			input.style.height = "60px"
+			input.style.width = '60px'
+			input.style.height = '60px'
 			input.onclick = () => {
 				if (input.parentElement !== null) {
 					if (input.checked) {
@@ -126,16 +129,15 @@ export class Speaker extends THREE.Object3D implements IWorldEntity, INetwork, I
 		const allAudios = document.getElementById('all-audios')
 		if (allAudios === null) return
 
-		if (this.audio.dom !== null)
-			allAudios.removeChild(this.audio.dom)
+		if (this.audio.dom !== null) allAudios.removeChild(this.audio.dom)
 
 		world.removeSceneObject(this)
 	}
 
-	update(timestep: number, unscaledTimeStep: number): void { }
+	update(timestep: number, unscaledTimeStep: number): void {}
 
 	Out(): { [id: string]: any } {
 		return {}
 	}
-	Set(messages: any): void { }
+	Set(messages: any): void {}
 }

@@ -58,18 +58,18 @@ export class Airplane extends Vehicle implements IWorldEntity {
 		this.readAirplaneData(gltf)
 
 		this.actions = {
-			'throttle': new KeyBinding('ShiftLeft'),
-			'brake': new KeyBinding('Space'),
-			'wheelBrake': new KeyBinding('KeyB'),
-			'pitchUp': new KeyBinding('KeyS'),
-			'pitchDown': new KeyBinding('KeyW'),
-			'yawLeft': new KeyBinding('KeyQ'),
-			'yawRight': new KeyBinding('KeyE'),
-			'rollLeft': new KeyBinding('KeyA'),
-			'rollRight': new KeyBinding('KeyD'),
-			'exitVehicle': new KeyBinding('KeyF'),
-			'seat_switch': new KeyBinding('KeyX'),
-			'view': new KeyBinding('KeyV'),
+			throttle: new KeyBinding('ShiftLeft'),
+			brake: new KeyBinding('Space'),
+			wheelBrake: new KeyBinding('KeyB'),
+			pitchUp: new KeyBinding('KeyS'),
+			pitchDown: new KeyBinding('KeyW'),
+			yawLeft: new KeyBinding('KeyQ'),
+			yawRight: new KeyBinding('KeyE'),
+			rollLeft: new KeyBinding('KeyA'),
+			rollRight: new KeyBinding('KeyD'),
+			exitVehicle: new KeyBinding('KeyF'),
+			seat_switch: new KeyBinding('KeyX'),
+			view: new KeyBinding('KeyV'),
 		}
 
 		this.steeringSimulator = new SpringSimulator(60, 10, 0.6)
@@ -92,7 +92,7 @@ export class Airplane extends Vehicle implements IWorldEntity {
 
 	public update(timeStep: number): void {
 		super.update(timeStep)
-		if (this.world !== null && (this.world.isClient && (this.world.worldId !== null))) return
+		if (this.world !== null && this.world.isClient && this.world.worldId !== null) return
 
 		// Rotors visuals
 		if (this.controllingCharacter !== null) {
@@ -106,11 +106,17 @@ export class Airplane extends Vehicle implements IWorldEntity {
 
 		// Steering
 		if (this.rayCastVehicle.numWheelsOnGround > 0) {
-			if ((this.actions.yawLeft.isPressed || this.actions.rollLeft.isPressed)
-				&& !this.actions.yawRight.isPressed && !this.actions.rollRight.isPressed) {
+			if (
+				(this.actions.yawLeft.isPressed || this.actions.rollLeft.isPressed) &&
+				!this.actions.yawRight.isPressed &&
+				!this.actions.rollRight.isPressed
+			) {
 				this.steeringSimulator.target = 0.8
-			} else if ((this.actions.yawRight.isPressed || this.actions.rollRight.isPressed)
-				&& !this.actions.yawLeft.isPressed && !this.actions.rollLeft.isPressed) {
+			} else if (
+				(this.actions.yawRight.isPressed || this.actions.rollRight.isPressed) &&
+				!this.actions.yawLeft.isPressed &&
+				!this.actions.rollLeft.isPressed
+			) {
 				this.steeringSimulator.target = -0.8
 			} else {
 				this.steeringSimulator.target = 0
@@ -156,15 +162,12 @@ export class Airplane extends Vehicle implements IWorldEntity {
 		this.rudderSimulator.simulate(timeStep)
 
 		// Rotate parts
-		if (this.leftAileron !== null)
-			this.leftAileron.rotation.y = this.aileronSimulator.position
-		if (this.rightAileron !== null)
-			this.rightAileron.rotation.y = -this.aileronSimulator.position
+		if (this.leftAileron !== null) this.leftAileron.rotation.y = this.aileronSimulator.position
+		if (this.rightAileron !== null) this.rightAileron.rotation.y = -this.aileronSimulator.position
 		this.elevators.forEach((elevator) => {
 			elevator.rotation.y = this.elevatorSimulator.position
 		})
-		if (this.rudder !== null)
-			this.rudder.rotation.y = this.rudderSimulator.position
+		if (this.rudder !== null) this.rudder.rotation.y = this.rudderSimulator.position
 	}
 
 	public physicsPreStep(body: CANNON.Body, plane: Airplane): void {
@@ -183,7 +186,7 @@ export class Airplane extends Vehicle implements IWorldEntity {
 
 		let lowerMassInfluence = currentSpeed / 10
 		lowerMassInfluence = THREE.MathUtils.clamp(lowerMassInfluence, 0, 1)
-		this.collision.mass = 50 * (1 - (lowerMassInfluence * 0.6))
+		this.collision.mass = 50 * (1 - lowerMassInfluence * 0.6)
 
 		// Rotation stabilization
 		let lookVelocity = body.velocity.clone()
@@ -195,9 +198,9 @@ export class Airplane extends Vehicle implements IWorldEntity {
 		rotStabVelocity.w *= 0.3
 		let rotStabEuler = new THREE.Euler().setFromQuaternion(rotStabVelocity)
 
-		let rotStabInfluence = THREE.MathUtils.clamp(velLength1 - 1, 0, 0.1)  // Only with speed greater than 1 UPS
-		rotStabInfluence *= (this.rayCastVehicle.numWheelsOnGround > 0 && currentSpeed < 0 ? 0 : 1)    // Reverse fix
-		let loopFix = (this.actions.throttle.isPressed && currentSpeed > 0 ? 0 : 1)
+		let rotStabInfluence = THREE.MathUtils.clamp(velLength1 - 1, 0, 0.1) // Only with speed greater than 1 UPS
+		rotStabInfluence *= this.rayCastVehicle.numWheelsOnGround > 0 && currentSpeed < 0 ? 0 : 1 // Reverse fix
+		let loopFix = this.actions.throttle.isPressed && currentSpeed > 0 ? 0 : 1
 
 		body.angularVelocity.x += rotStabEuler.x * rotStabInfluence * loopFix
 		body.angularVelocity.y += rotStabEuler.y * rotStabInfluence
@@ -269,9 +272,21 @@ export class Airplane extends Vehicle implements IWorldEntity {
 		body.velocity.z += up.z * lift
 
 		// Angular damping
-		body.angularVelocity.x = THREE.MathUtils.lerp(body.angularVelocity.x, body.angularVelocity.x * 0.98, flightModeInfluence)
-		body.angularVelocity.y = THREE.MathUtils.lerp(body.angularVelocity.y, body.angularVelocity.y * 0.98, flightModeInfluence)
-		body.angularVelocity.z = THREE.MathUtils.lerp(body.angularVelocity.z, body.angularVelocity.z * 0.98, flightModeInfluence)
+		body.angularVelocity.x = THREE.MathUtils.lerp(
+			body.angularVelocity.x,
+			body.angularVelocity.x * 0.98,
+			flightModeInfluence
+		)
+		body.angularVelocity.y = THREE.MathUtils.lerp(
+			body.angularVelocity.y,
+			body.angularVelocity.y * 0.98,
+			flightModeInfluence
+		)
+		body.angularVelocity.z = THREE.MathUtils.lerp(
+			body.angularVelocity.z,
+			body.angularVelocity.z * 0.98,
+			flightModeInfluence
+		)
 	}
 
 	public onInputChange(): void {
@@ -310,8 +325,7 @@ export class Airplane extends Vehicle implements IWorldEntity {
 						if (child.userData.hasOwnProperty('side')) {
 							if (child.userData.side === 'left') {
 								this.leftAileron = child
-							}
-							else if (child.userData.side === 'right') {
+							} else if (child.userData.side === 'right') {
 								this.rightAileron = child
 							}
 						}
@@ -324,17 +338,22 @@ export class Airplane extends Vehicle implements IWorldEntity {
 	public inputReceiverInit(): void {
 		super.inputReceiverInit()
 		if (this.controllingCharacter === null) return
-		if (this.controllingCharacter.player !== null) this.controllingCharacter.player.uiControls = UiControlsGroup.Airplane
+		if (this.controllingCharacter.player !== null)
+			this.controllingCharacter.player.uiControls = UiControlsGroup.Airplane
 	}
 
 	public addToWorld(world: WorldBase): void {
 		super.addToWorld(world)
-		world.world.addEventListener('preStep', () => { this.physicsPreStep(this.collision, this) })
+		world.world.addEventListener('preStep', () => {
+			this.physicsPreStep(this.collision, this)
+		})
 	}
 
 	public removeFromWorld(world: WorldBase): void {
 		super.removeFromWorld(world)
-		world.world.removeEventListener('preStep', () => { this.physicsPreStep(this.collision, this) })
+		world.world.removeEventListener('preStep', () => {
+			this.physicsPreStep(this.collision, this)
+		})
 	}
 
 	public Out() {
@@ -345,47 +364,47 @@ export class Airplane extends Vehicle implements IWorldEntity {
 				position: {
 					x: wheel.wheelObject.position.x,
 					y: wheel.wheelObject.position.y,
-					z: wheel.wheelObject.position.z
+					z: wheel.wheelObject.position.z,
 				},
 				quaternion: {
 					x: wheel.wheelObject.quaternion.x,
 					y: wheel.wheelObject.quaternion.y,
 					z: wheel.wheelObject.quaternion.z,
-					w: wheel.wheelObject.quaternion.w
-				}
+					w: wheel.wheelObject.quaternion.w,
+				},
 			})
 		})
 		const rotor: { [id: string]: any } = {
 			quaternion: {
-				x: (this.rotor === null) ? 0 : this.rotor.quaternion.x,
-				y: (this.rotor === null) ? 0 : this.rotor.quaternion.y,
-				z: (this.rotor === null) ? 0 : this.rotor.quaternion.z,
-				w: (this.rotor === null) ? 0 : this.rotor.quaternion.w
-			}
+				x: this.rotor === null ? 0 : this.rotor.quaternion.x,
+				y: this.rotor === null ? 0 : this.rotor.quaternion.y,
+				z: this.rotor === null ? 0 : this.rotor.quaternion.z,
+				w: this.rotor === null ? 0 : this.rotor.quaternion.w,
+			},
 		}
 		const leftaileron: { [id: string]: any } = {
 			quaternion: {
-				x: (this.leftAileron === null) ? 0 : this.leftAileron.quaternion.x,
-				y: (this.leftAileron === null) ? 0 : this.leftAileron.quaternion.y,
-				z: (this.leftAileron === null) ? 0 : this.leftAileron.quaternion.z,
-				w: (this.leftAileron === null) ? 0 : this.leftAileron.quaternion.w
-			}
+				x: this.leftAileron === null ? 0 : this.leftAileron.quaternion.x,
+				y: this.leftAileron === null ? 0 : this.leftAileron.quaternion.y,
+				z: this.leftAileron === null ? 0 : this.leftAileron.quaternion.z,
+				w: this.leftAileron === null ? 0 : this.leftAileron.quaternion.w,
+			},
 		}
 		const rightaileron: { [id: string]: any } = {
 			quaternion: {
-				x: (this.rightAileron === null) ? 0 : this.rightAileron.quaternion.x,
-				y: (this.rightAileron === null) ? 0 : this.rightAileron.quaternion.y,
-				z: (this.rightAileron === null) ? 0 : this.rightAileron.quaternion.z,
-				w: (this.rightAileron === null) ? 0 : this.rightAileron.quaternion.w
-			}
+				x: this.rightAileron === null ? 0 : this.rightAileron.quaternion.x,
+				y: this.rightAileron === null ? 0 : this.rightAileron.quaternion.y,
+				z: this.rightAileron === null ? 0 : this.rightAileron.quaternion.z,
+				w: this.rightAileron === null ? 0 : this.rightAileron.quaternion.w,
+			},
 		}
 		const rudder: { [id: string]: any } = {
 			quaternion: {
-				x: (this.rudder === null) ? 0 : this.rudder.quaternion.x,
-				y: (this.rudder === null) ? 0 : this.rudder.quaternion.y,
-				z: (this.rudder === null) ? 0 : this.rudder.quaternion.z,
-				w: (this.rudder === null) ? 0 : this.rudder.quaternion.w
-			}
+				x: this.rudder === null ? 0 : this.rudder.quaternion.x,
+				y: this.rudder === null ? 0 : this.rudder.quaternion.y,
+				z: this.rudder === null ? 0 : this.rudder.quaternion.z,
+				w: this.rudder === null ? 0 : this.rudder.quaternion.w,
+			},
 		}
 		const elevators: { [id: string]: any }[] = []
 		this.elevators.forEach((elevator) => {
@@ -394,8 +413,8 @@ export class Airplane extends Vehicle implements IWorldEntity {
 					x: elevator.quaternion.x,
 					y: elevator.quaternion.y,
 					z: elevator.quaternion.z,
-					w: elevator.quaternion.w
-				}
+					w: elevator.quaternion.w,
+				},
 			})
 		})
 		msg.data['entity'] = this.entityType
@@ -415,13 +434,13 @@ export class Airplane extends Vehicle implements IWorldEntity {
 			this.wheels[i].wheelObject.position.set(
 				messages.data.wheels[i].position.x,
 				messages.data.wheels[i].position.y,
-				messages.data.wheels[i].position.z,
+				messages.data.wheels[i].position.z
 			)
 			this.wheels[i].wheelObject.quaternion.set(
 				messages.data.wheels[i].quaternion.x,
 				messages.data.wheels[i].quaternion.y,
 				messages.data.wheels[i].quaternion.z,
-				messages.data.wheels[i].quaternion.w,
+				messages.data.wheels[i].quaternion.w
 			)
 		}
 		if (this.rotor) {
@@ -429,7 +448,7 @@ export class Airplane extends Vehicle implements IWorldEntity {
 				messages.data.rotor.quaternion.x,
 				messages.data.rotor.quaternion.y,
 				messages.data.rotor.quaternion.z,
-				messages.data.rotor.quaternion.w,
+				messages.data.rotor.quaternion.w
 			)
 		}
 		if (this.leftAileron) {
@@ -437,7 +456,7 @@ export class Airplane extends Vehicle implements IWorldEntity {
 				messages.data.leftaileron.quaternion.x,
 				messages.data.leftaileron.quaternion.y,
 				messages.data.leftaileron.quaternion.z,
-				messages.data.leftaileron.quaternion.w,
+				messages.data.leftaileron.quaternion.w
 			)
 		}
 		if (this.rightAileron) {
@@ -445,7 +464,7 @@ export class Airplane extends Vehicle implements IWorldEntity {
 				messages.data.rightaileron.quaternion.x,
 				messages.data.rightaileron.quaternion.y,
 				messages.data.rightaileron.quaternion.z,
-				messages.data.rightaileron.quaternion.w,
+				messages.data.rightaileron.quaternion.w
 			)
 		}
 		if (this.rudder) {
@@ -453,7 +472,7 @@ export class Airplane extends Vehicle implements IWorldEntity {
 				messages.data.rudder.quaternion.x,
 				messages.data.rudder.quaternion.y,
 				messages.data.rudder.quaternion.z,
-				messages.data.rudder.quaternion.w,
+				messages.data.rudder.quaternion.w
 			)
 		}
 		for (let i = 0; i < messages.data.elevators.length; i++) {
@@ -461,7 +480,7 @@ export class Airplane extends Vehicle implements IWorldEntity {
 				messages.data.elevators[i].quaternion.x,
 				messages.data.elevators[i].quaternion.y,
 				messages.data.elevators[i].quaternion.z,
-				messages.data.elevators[i].quaternion.w,
+				messages.data.elevators[i].quaternion.w
 			)
 		}
 	}

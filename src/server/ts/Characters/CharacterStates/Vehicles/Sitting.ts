@@ -1,10 +1,5 @@
-import {
-	CharacterStateBase,
-} from '../_CharacterStateLibrary'
-import {
-	CloseVehicleDoorInside,
-	SwitchingSeats
-} from './_VehicleStateLibrary'
+import { CharacterStateBase } from '../_CharacterStateLibrary'
+import { CloseVehicleDoorInside, SwitchingSeats } from './_VehicleStateLibrary'
 import { Character } from '../../Character'
 import { VehicleSeat } from '../../../Vehicles/VehicleSeat'
 import { SeatType } from '../../../Enums/SeatType'
@@ -31,13 +26,18 @@ export class Sitting extends CharacterStateBase {
 
 	public async update(timeStep: number): Promise<void> {
 		await super.update(timeStep)
-		if ((this.seat.door !== null) && !this.seat.door.achievingTargetRotation && (this.seat.door.rotation > 0) && this.noDirection()) {
+		if (
+			this.seat.door !== null &&
+			!this.seat.door.achievingTargetRotation &&
+			this.seat.door.rotation > 0 &&
+			this.noDirection()
+		) {
 			this.character.setState(new CloseVehicleDoorInside(this.character, this.seat))
 		} else if (this.character.vehicleEntryInstance !== null) {
 			if (this.character.vehicleEntryInstance.wantsToDrive) {
 				for (const possibleDriverSeat of this.seat.connectedSeats) {
 					if (possibleDriverSeat.type === SeatType.Driver) {
-						if ((this.seat.door !== null) && this.seat.door.rotation > 0) this.seat.door.physicsEnabled = true
+						if (this.seat.door !== null && this.seat.door.rotation > 0) this.seat.door.physicsEnabled = true
 						if (possibleDriverSeat.occupiedBy === null)
 							this.character.setState(new SwitchingSeats(this.character, this.seat, possibleDriverSeat))
 						break

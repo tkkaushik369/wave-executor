@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import * as CANNON from 'cannon-es'
 import { Utility } from '../../Core/Utility'
 import { ICollider } from '../../Interfaces/ICollider'
-import { threeToCannon, ShapeType } from 'three-to-cannon';
+import { threeToCannon, ShapeType } from 'three-to-cannon'
 
 export class TrimeshCollider implements ICollider {
 	public mesh: any
@@ -17,7 +17,7 @@ export class TrimeshCollider implements ICollider {
 			mass: 0,
 			position: mesh.position,
 			rotation: mesh.quaternion,
-			friction: 0.3
+			friction: 0.3,
 		}
 		options = Utility.setDefaults(options, defaults)
 		this.options = options
@@ -41,7 +41,9 @@ export class TrimeshCollider implements ICollider {
 		if (indicesBuffer !== null) {
 			let inxBuff = indicesBuffer.array
 			let vertBuff = bufferGeometry.attributes.position.array
-			inxBuff.forEach((i) => { indices.push(i) })
+			inxBuff.forEach((i) => {
+				indices.push(i)
+			})
 			for (let i = 0; i < inxBuff.length; i++) {
 				indices.push(inxBuff[i])
 			}

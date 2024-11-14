@@ -4,15 +4,8 @@ import { Utility } from '../../../Core/Utility'
 import { Character } from '../../Character'
 import { Side } from '../../../Enums/Side'
 import { VehicleSeat } from '../../../Vehicles/VehicleSeat'
-import {
-	CloseVehicleDoorOutside,
-	ExitingStateBase
-} from './_VehicleStateLibrary'
-import {
-	Falling,
-	DropRolling,
-	Idle
-} from '../_CharacterStateLibrary'
+import { CloseVehicleDoorOutside, ExitingStateBase } from './_VehicleStateLibrary'
+import { Falling, DropRolling, Idle } from '../_CharacterStateLibrary'
 
 export class ExitingVehicle extends ExitingStateBase {
 	state = 'ExitingVehicle'
@@ -42,8 +35,7 @@ export class ExitingVehicle extends ExitingStateBase {
 		if (this.animationEnded(timeStep)) {
 			this.detachCharacterFromVehicle()
 
-			if (this.seat.door !== null)
-				this.seat.door.physicsEnabled = true
+			if (this.seat.door !== null) this.seat.door.physicsEnabled = true
 
 			if (!this.character.rayHasHit) {
 				this.character.leaveSeat()
@@ -57,8 +49,7 @@ export class ExitingVehicle extends ExitingStateBase {
 			} else {
 				this.character.setState(new CloseVehicleDoorOutside(this.character, this.seat))
 			}
-		}
-		else {
+		} else {
 			// Door
 			if (this.seat.door) {
 				this.seat.door.physicsEnabled = false
@@ -68,7 +59,11 @@ export class ExitingVehicle extends ExitingStateBase {
 			let factor = this.timer / this.animationLength
 			let smoothFactor = Utility.easeInOutSine(factor)
 			let lerpPosition = new THREE.Vector3().lerpVectors(this.startPosition, this.endPosition, smoothFactor)
-			if ((this.character.world !== null) && (!this.character.world.isClient || (this.character.world.isClient && (this.character.world.worldId === null)))) {
+			if (
+				this.character.world !== null &&
+				(!this.character.world.isClient ||
+					(this.character.world.isClient && this.character.world.worldId === null))
+			) {
 				this.character.setPosition(lerpPosition.x, lerpPosition.y, lerpPosition.z)
 
 				// Rotation

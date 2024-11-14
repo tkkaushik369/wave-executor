@@ -15,31 +15,54 @@ import path from 'path'
 import http from 'http'
 import { WebSocketServer, WebSocket } from 'ws'
 import { Server, Socket } from 'socket.io'
-import { instrument } from "@socket.io/admin-ui"
+import { instrument } from '@socket.io/admin-ui'
 import parser from 'socket.io-msgpack-parser'
-import { pack, unpack } from "msgpackr"
+// import { pack, unpack } from "msgpackr"
 import { Utility } from './ts/Core/Utility'
 import { Player, PlayerSetMesssage } from './ts/Core/Player'
 import { WorldServer } from './ts/World/WorldServer'
 import { ControlsTypes } from './ts/Enums/ControlsTypes'
 import { MessageTypes } from './ts/Enums/MessagesTypes'
 import { Communication, DataSender, Packager, WorldCreation } from './ts/Enums/Communication'
+import fs from 'node:fs'
+
+// Set the MIME type explicitly
+express.static.mime.define({ 'application/wasm': ['wasm'] })
+
+var isEle = false
+if (__dirname.includes('node_modules')) {
+	__dirname = path.resolve(__dirname.split('node_modules')[0], '.webpack/renderer/main_window')
+	isEle = true
+}
 
 const port: number = Number(process.env.PORT) || 3000
 const privateHost: boolean = false
 
-class AppServer {
-	private server: http.Server
+export type ConnectedEvent = CustomEvent<{
+	id: string
+	ws: WebSocket
+}>
+export type DisconnectedEvent = CustomEvent<{
+	id: string
+	ws: WebSocket
+}>
+
+export class AppServer extends EventTarget {
 	private port: number
+	private server: http.Server | null
 	private io: Server | null
 	private wss: WebSocketServer | null
+	private app: express.Express
 
 	private allUsers: { [id: string]: Player }
 	private allWorlds: { [id: string]: WorldServer }
 	private uid: number = 1
 
 	constructor(port: number) {
+		super()
 		// Bind Functions
+		this.initCommunication = this.initCommunication.bind(this)
+
 		this.CreateNewWorld = this.CreateNewWorld.bind(this)
 		this.CreatePlayerWorld = this.CreatePlayerWorld.bind(this)
 		this.CreatePlayerWorldCallBack = this.CreatePlayerWorldCallBack.bind(this)
@@ -61,129 +84,150 @@ class AppServer {
 		this.ForOutofWorld = this.ForOutofWorld.bind(this)
 		this.GetLatestWorldData = this.GetLatestWorldData.bind(this)
 		this.RemoveUnusedWorlds = this.RemoveUnusedWorlds.bind(this)
+
 		this.Status = this.Status.bind(this)
 		this.Start = this.Start.bind(this)
+		this.Stop = this.Stop.bind(this)
 
 		// init
 		this.port = port
-		const app = express()
-		app.use(express.static(path.join(__dirname, "../client")))
-
-		this.server = new http.Server(app)
-		if (Common.conn === Communication.SocketIO) {
-			this.io = new Server(this.server, {
-				parser: parser,
-				cors: {
-					origin: ["https://admin.socket.io"],
-					credentials: true
-				}
-			})
-			instrument(this.io, { auth: false, mode: "development" })
-			this.io.engine.on("connection", (rawSocket) => { rawSocket.request = null })
-			this.wss = null
-		} else if (Common.conn === Communication.WebSocket) {
-			this.io = null
-			this.wss = new WebSocketServer({ server: this.server/* port: 3001 */ })
-		} else {
-			this.io = null
-			this.wss = null
-		}
-
+		this.server = null
 		this.allUsers = {}
 		this.allWorlds = {}
+		this.io = null
+		this.wss = null
 
+		const clientPath = path.resolve(__dirname, '../client_window')
+		this.app = express()
+		if (isEle) {
+			this.app.use('/client_window', express.static(clientPath))
+			this.app.use('/audios', express.static(path.join(clientPath, '../../../src/client/audios')))
+			this.app.use('/images', express.static(path.join(clientPath, '../../../src/client/images')))
+			this.app.use('/models', express.static(path.join(clientPath, '../../../src/client/models')))
+			this.app.get('/', (req, res) => {
+				res.sendFile(path.resolve(clientPath, 'index.html'))
+			})
+		} else {
+			this.app.use('/audios', express.static(path.join(clientPath, '../../../')))
+			this.app.use('/images', express.static(path.join(clientPath, '../../../')))
+			this.app.use('/models', express.static(path.join(clientPath, '../../../')))
+			this.app.use(express.static(path.join(__dirname, '../client')))
+		}
+
+		setInterval(this.ForOutofWorld, 100)
+	}
+
+	private initCommunication() {
 		if (this.io !== null) {
-			this.io.on("connection", (socket: Socket) => {
+			this.io.on('connection', (socket: Socket) => {
 				this.OnConnect(socket, null)
-				socket.on("disconnect", () => this.OnDisConnect(socket.id))
-				socket.on("controls", (controls: { type: ControlsTypes, data: { [id: string]: any } }) => this.OnControls(socket.id, controls))
-				socket.on("change", (worldId: string, callBack: Function) => this.OnChange(socket, worldId, callBack))
-				socket.on("changeFinish", (worldId: string) => this.OnChangeFinish(socket, worldId))
-				socket.on("leave", (worldId: string, callBack: Function) => this.OnLeave(socket, worldId, callBack))
-				socket.on("map", (mapName: string) => this.OnMap(socket.id, mapName))
-				socket.on("scenario", (scenarioName: string) => this.OnScenario(socket.id, scenarioName))
-				socket.on("message", (messageData: { [id: string]: string }) => this.OnMessage(messageData))
-				socket.on("update", (message: any, callBack: Function) => this.OnUpdate(socket.id, message, callBack))
+				socket.on('disconnect', () => this.OnDisConnect(socket.id))
+				socket.on('controls', (controls: { type: ControlsTypes; sID: string; data: { [id: string]: any } }) =>
+					this.OnControls(socket.id, controls)
+				)
+				socket.on('change', (worldId: string, callBack: Function) => this.OnChange(socket, worldId, callBack))
+				socket.on('changeFinish', (worldId: string) => this.OnChangeFinish(socket, worldId))
+				socket.on('leave', (worldId: string, callBack: Function) => this.OnLeave(socket, worldId, callBack))
+				socket.on('map', (mapName: string) => this.OnMap(socket.id, mapName))
+				socket.on('scenario', (scenarioName: string) => this.OnScenario(socket.id, scenarioName))
+				socket.on('message', (messageData: { [id: string]: string }) => this.OnMessage(messageData))
+				socket.on('update', (message: any, callBack: Function) => this.OnUpdate(socket.id, message, callBack))
 			})
 		} else if (this.wss !== null) {
 			this.wss.on('connection', (ws) => {
-				const sID = "soc_" + this.uid
-				{ // OnConnect
+				const sID = 'soc_' + this.uid
+				{
+					// OnConnect
 					this.OnConnect({ id: sID }, ws)
 				}
 
 				ws.on('message', (rawdata: any) => {
 					let data = {} as any
-					if (Common.packager === Packager.JSON)
-						data = JSON.parse(rawdata)
-					else if (Common.packager === Packager.MsgPacker)
-						data = unpack(rawdata)
+					if (Common.packager === Packager.JSON) data = JSON.parse(rawdata)
+					/* else if (Common.packager === Packager.MsgPacker)
+						data = unpack(rawdata) */
 
 					switch (data.type) {
-						case "setIDCallBack": {
+						case 'setIDCallBack': {
 							this.CreatePlayerWorldCallBack(data.params.uID, data.params.sID)
-							if ((data.params.sID !== undefined) && (this.allUsers[data.params.sID] !== undefined)) {
+							if (data.params.sID !== undefined && this.allUsers[data.params.sID] !== undefined) {
 								this.allUsers[data.params.sID].ws = ws
 							}
 							break
 						}
-						case "update": {
+						case 'update': {
 							this.OnUpdate(data.params.sID, data.params, () => {
 								let alldata: { [id: string]: any } = {}
 								if (Common.sender === DataSender.PingPong)
 									if (this.allUsers[data.params.sID] !== undefined) {
-										if (this.allUsers[data.params.sID].world !== null)
-											alldata = this.GetLatestWorldData(this.allUsers[data.params.sID].world.worldId)
-										else
-											alldata = this.GetLatestWorldData(null)
+										const world = this.allUsers[data.params.sID].world
+										if (world !== null) alldata = this.GetLatestWorldData(world.worldId)
+										else alldata = this.GetLatestWorldData(null)
 									}
 								if (Common.packager === Packager.JSON)
-									ws.send(JSON.stringify({ type: "ForSocketLoopCallBack", params: alldata }))
-								else if (Common.packager === Packager.MsgPacker)
-									ws.send(pack({ type: "ForSocketLoopCallBack", params: alldata }))
+									ws.send(JSON.stringify({ type: 'ForSocketLoopCallBack', params: alldata }))
+								/* else if (Common.packager === Packager.MsgPacker)
+									ws.send(pack({ type: "ForSocketLoopCallBack", params: alldata })) */
 							})
 							break
 						}
-						case "controls": {
+						case 'controls': {
 							this.OnControls(data.params.sID, data.params)
 							break
 						}
-						case "map": {
+						case 'map': {
 							this.OnMap(data.params.sID, data.params.map)
 							break
 						}
-						case "scenario": {
+						case 'scenario': {
 							this.OnScenario(data.params.sID, data.params.scenario)
 							break
 						}
-						case "message": {
+						case 'message': {
 							this.OnMessage(data.params)
 							break
 						}
-						case "change": {
-							this.OnChange({ id: data.params.sID }, data.params.worldId, (params: { worldId: string, lastMapID: string, lastScenarioID: string, players: { sID: string, uID: string }[] }) => {
-								if (this.allUsers[sID].ws !== null) {
-									if (Common.packager === Packager.JSON)
-										this.allUsers[sID].ws.send(JSON.stringify({ type: "changeCallBack", params }))
-									else if (Common.packager === Packager.MsgPacker)
-										this.allUsers[sID].ws.send(pack({ type: "changeCallBack", params }))
+						case 'change': {
+							this.OnChange(
+								{ id: data.params.sID },
+								data.params.worldId,
+								(params: {
+									worldId: string
+									lastMapID: string
+									lastScenarioID: string
+									players: { sID: string; uID: string }[]
+								}) => {
+									if (this.allUsers[sID].ws !== null) {
+										if (Common.packager === Packager.JSON)
+											this.allUsers[sID].ws.send(
+												JSON.stringify({ type: 'changeCallBack', params })
+											)
+										/* else if (Common.packager === Packager.MsgPacker)
+										this.allUsers[sID].ws.send(pack({ type: "changeCallBack", params })) */
+									}
 								}
-							})
+							)
 							break
 						}
-						case "changeFinish": {
+						case 'changeFinish': {
 							this.OnChangeFinish({ id: data.params.sID }, data.params.worldId)
 							break
 						}
-						case "leave": {
-							this.OnLeave({ id: data.params.sID }, data.params.worldId, (params: { worldId: string }) => {
-								if (this.allUsers[sID].ws !== null) {
-									if (Common.packager === Packager.JSON)
-										this.allUsers[sID].ws.send(JSON.stringify({ type: "leaveCallBack", params }))
-									else if (Common.packager === Packager.MsgPacker)
-										this.allUsers[sID].ws.send(pack({ type: "leaveCallBack", params }))
+						case 'leave': {
+							this.OnLeave(
+								{ id: data.params.sID },
+								data.params.worldId,
+								(params: { worldId: string }) => {
+									if (this.allUsers[sID].ws !== null) {
+										if (Common.packager === Packager.JSON)
+											this.allUsers[sID].ws.send(
+												JSON.stringify({ type: 'leaveCallBack', params })
+											)
+										/* else if (Common.packager === Packager.MsgPacker)
+										this.allUsers[sID].ws.send(pack({ type: "leaveCallBack", params })) */
+									}
 								}
-							})
+							)
 							break
 						}
 						default: {
@@ -196,8 +240,6 @@ class AppServer {
 				ws.on('close', () => this.OnDisConnect(sID))
 			})
 		}
-
-		setInterval(this.ForOutofWorld, 100)
 	}
 
 	private CreateNewWorld(worldId: string) {
@@ -210,7 +252,7 @@ class AppServer {
 	private CreatePlayerWorld(socketid: string): PlayerSetMesssage {
 		this.allUsers[socketid] = new Player(socketid, Utility.defaultCamera(), null)
 
-		let worldId = "World_" + socketid
+		let worldId = 'World_' + socketid
 		const worldIds = Object.keys(this.allWorlds)
 		if (Common.eachNewWorld === WorldCreation.OneForEach) {
 			this.CreateNewWorld(worldId)
@@ -244,16 +286,23 @@ class AppServer {
 
 		if (this.allWorlds[worldId].runner === null) {
 			console.log(`Running: ${worldId}`)
-			this.allWorlds[worldId].runner = setInterval(this.allWorlds[worldId].update, this.allWorlds[worldId].physicsFrameTime * 1000)
+			this.allWorlds[worldId].runner = setInterval(
+				this.allWorlds[worldId].update,
+				this.allWorlds[worldId].physicsFrameTime * 1000
+			)
 		}
 
 		for (let i = 0; i < this.allWorlds[worldId].scenarios.length; i++) {
 			if (this.allWorlds[worldId].scenarios[i].name === this.allWorlds[worldId].lastScenarioID) {
 				if (this.allWorlds[worldId].scenarios[i].playerPosition !== null) {
-					const pos = Utility.GridPosition(this.allWorlds[worldId].users, this.allWorlds[worldId].scenarios[i].playerPosition)
-					this.allUsers[socket.id].setSpawn(pos[pos.length - 1], false)
-					this.allUsers[socket.id].cameraOperator.theta = this.allWorlds[worldId].scenarios[i].initialCameraAngle
-					this.allUsers[socket.id].cameraOperator.phi = 15
+					const playerPosition = this.allWorlds[worldId].scenarios[i].playerPosition
+					if (playerPosition !== null) {
+						const pos = Utility.GridPosition(this.allWorlds[worldId].users, playerPosition)
+						this.allUsers[socket.id].setSpawn(pos[pos.length - 1], false)
+						this.allUsers[socket.id].cameraOperator.theta =
+							this.allWorlds[worldId].scenarios[i].initialCameraAngle
+						this.allUsers[socket.id].cameraOperator.phi = 15
+					}
 				}
 				break
 			}
@@ -261,8 +310,8 @@ class AppServer {
 		/* if (this.allWorlds[worldId] !== undefined)
 			this.allUsers[socket.id].addUser(this.allWorlds[worldId]) */
 
-		if (socket instanceof Socket) {
-			this.io.in(worldId).emit("addClient", { sID: socket.id, uID: this.allUsers[socket.id].uID })
+		if (socket instanceof Socket && this.io !== null) {
+			this.io.in(worldId).emit('addClient', { sID: socket.id, uID: this.allUsers[socket.id].uID })
 			socket.join(worldId)
 		} else {
 			if (this.allWorlds[worldId] !== undefined) {
@@ -270,10 +319,15 @@ class AppServer {
 					if (this.allWorlds[worldId].users[sID] !== undefined) {
 						if (this.allWorlds[worldId].users[sID].ws !== null) {
 							if (Common.packager === Packager.JSON) {
-								this.allWorlds[worldId].users[sID].ws.send(JSON.stringify({ type: "addClient", params: { sID: socket.id, uID: this.allUsers[socket.id].uID } }))
-							} else if (Common.packager === Packager.MsgPacker) {
+								this.allWorlds[worldId].users[sID].ws.send(
+									JSON.stringify({
+										type: 'addClient',
+										params: { sID: socket.id, uID: this.allUsers[socket.id].uID },
+									})
+								)
+							} /*  else if (Common.packager === Packager.MsgPacker) {
 								this.allWorlds[worldId].users[sID].ws.send(pack({ type: "addClient", params: { sID: socket.id, uID: this.allUsers[socket.id].uID } }))
-							}
+							} */
 						}
 					}
 				})
@@ -282,21 +336,21 @@ class AppServer {
 	}
 
 	private LeaveWorldPlayer(socket: Socket | { id: string }) {
-		if (this.allUsers[socket.id].world === null) return
+		const world = this.allUsers[socket.id].world
+		if (world === null) return
 
-		if (this.allUsers[socket.id] !== undefined)
-			this.allUsers[socket.id].removeUser(this.allUsers[socket.id].world)
+		if (this.allUsers[socket.id] !== undefined) this.allUsers[socket.id].removeUser(world)
 
-		if (this.allUsers[socket.id].world.worldId === null) return
-		const worldId = this.allUsers[socket.id].world.worldId
+		const worldId = world.worldId
+		if (worldId === null) return
 
 		this.allUsers[socket.id].world = null
 		if (this.allWorlds[worldId].users[socket.id] !== undefined) {
 			delete this.allWorlds[worldId].users[socket.id]
 		}
 
-		if (socket instanceof Socket) {
-			this.io.in(worldId).emit("removeClient", { sID: socket.id })
+		if (socket instanceof Socket && this.io !== null) {
+			this.io.in(worldId).emit('removeClient', { sID: socket.id })
 			socket.leave(worldId)
 		} else {
 			if (this.allWorlds[worldId] !== undefined) {
@@ -304,10 +358,12 @@ class AppServer {
 					if (this.allWorlds[worldId].users[sID] !== undefined) {
 						if (this.allWorlds[worldId].users[sID].ws !== null) {
 							if (Common.packager === Packager.JSON) {
-								this.allWorlds[worldId].users[sID].ws.send(JSON.stringify({ type: "removeClient", params: { sID: socket.id } }))
-							} else if (Common.packager === Packager.MsgPacker) {
+								this.allWorlds[worldId].users[sID].ws.send(
+									JSON.stringify({ type: 'removeClient', params: { sID: socket.id } })
+								)
+							} /* else if (Common.packager === Packager.MsgPacker) {
 								this.allWorlds[worldId].users[sID].ws.send(pack({ type: "removeClient", params: { sID: socket.id } }))
-							}
+							} */
 						}
 					}
 				})
@@ -315,23 +371,40 @@ class AppServer {
 		}
 	}
 
-	private OnConnect(socket: Socket | { id: string }, ws: WebSocket) {
+	private OnConnect(socket: Socket | { id: string }, ws: WebSocket | null) {
 		console.log(`Client Connected: ${socket.id}`)
 		if (socket instanceof Socket) {
-			socket.emit("setID", this.CreatePlayerWorld(socket.id), this.CreatePlayerWorldCallBack)
+			socket.emit('setID', this.CreatePlayerWorld(socket.id), this.CreatePlayerWorldCallBack)
 		} else if (ws !== null) {
 			if (Common.packager === Packager.JSON)
-				ws.send(JSON.stringify({ type: "setID", params: this.CreatePlayerWorld(socket.id) }))
-			else if (Common.packager === Packager.MsgPacker)
-				ws.send(pack({ type: "setID", params: this.CreatePlayerWorld(socket.id) }))
+				ws.send(JSON.stringify({ type: 'setID', params: this.CreatePlayerWorld(socket.id) }))
+			/* else if (Common.packager === Packager.MsgPacker)
+				ws.send(pack({ type: "setID", params: this.CreatePlayerWorld(socket.id) })) */
 		}
+
+		this.dispatchEvent(
+			new CustomEvent('connected', {
+				detail: {
+					id: socket.id,
+				},
+			})
+		)
 	}
 
 	private OnDisConnect(sID: string) {
+		if (this.allUsers[sID] === undefined) return
 		const char = this.allUsers[sID].character
 
 		const onFinish = () => {
 			console.log(`Client disconnected: ${sID} <- ${this.allUsers[sID].uID}`)
+
+			this.dispatchEvent(
+				new CustomEvent('disconnected', {
+					detail: {
+						id: sID,
+					},
+				})
+			)
 
 			this.LeaveWorldPlayer({ id: sID })
 
@@ -357,23 +430,25 @@ class AppServer {
 		}
 	}
 
-	private OnControls(sID: string, controls: { type: ControlsTypes, data: { [id: string]: any } }) {
+	private OnControls(sID: string, controls: { type: ControlsTypes; sID: string; data: { [id: string]: any } }) {
 		if (this.allUsers[sID] !== undefined) {
 			this.allUsers[sID].inputManager.setControls(controls)
 			controls['sID'] = sID
 
 			{
-				if (this.io !== null)
-					this.io.emit('controls', controls)
+				if (this.io !== null) this.io.emit('controls', controls)
 				else {
-					if (this.allUsers[sID].world !== null) {
-						Object.keys(this.allUsers[sID].world.users).forEach((wsID) => {
-							if (this.allUsers[sID].world.users[wsID] !== undefined) {
-								if (this.allUsers[sID].world.users[wsID].ws !== null) {
+					const world = this.allUsers[sID].world
+					if (world !== null) {
+						Object.keys(world.users).forEach((wsID) => {
+							if (world.users[wsID] !== undefined) {
+								if (world.users[wsID].ws !== null) {
 									if (Common.packager === Packager.JSON)
-										this.allUsers[sID].world.users[wsID].ws.send(JSON.stringify({ type: "controls", params: controls }))
-									else if (Common.packager === Packager.MsgPacker)
-										this.allUsers[sID].world.users[wsID].ws.send(pack({ type: "controls", params: controls }))
+										world.users[wsID].ws.send(
+											JSON.stringify({ type: 'controls', params: controls })
+										)
+									/* else if (Common.packager === Packager.MsgPacker)
+										world.users[wsID].ws.send(pack({ type: "controls", params: controls })) */
 								}
 							}
 						})
@@ -388,25 +463,31 @@ class AppServer {
 
 		this.LeaveWorldPlayer(socket)
 
-		let players = []
+		let players: { sID: string; uID: string }[] = []
 		Object.keys(this.allWorlds[worldId].users).forEach((sID) => {
 			if (this.allWorlds[worldId].users[sID] !== undefined) {
-				players.push({
-					sID: sID,
-					uID: this.allWorlds[worldId].users[sID].uID
-				})
+				if (this.allWorlds[worldId].users[sID].uID !== null) {
+					players.push({
+						sID: sID,
+						uID: this.allWorlds[worldId].users[sID].uID,
+					})
+				}
 			}
 		})
 
 		this.JoinWorldPlayer(socket, worldId)
 
 		this.Status()
-		callBack({
-			worldId: this.allUsers[socket.id].world.worldId,
-			lastMapID: this.allUsers[socket.id].world.lastMapID,
-			lastScenarioID: this.allUsers[socket.id].world.lastScenarioID,
-			players: players
-		})
+
+		const world = this.allUsers[socket.id].world
+		if (world !== null) {
+			callBack({
+				worldId: world.worldId ? world.worldId : null,
+				lastMapID: world.lastMapID ? world.lastMapID : null,
+				lastScenarioID: world.lastScenarioID ? world.lastScenarioID : null,
+				players: players,
+			})
+		}
 	}
 
 	private OnChangeFinish(socket: Socket | { id: string }, worldId: string) {
@@ -426,20 +507,20 @@ class AppServer {
 	private OnMap(sID: string, mapName: string) {
 		console.log(`Map: ${mapName}`)
 		if (this.allUsers[sID] === undefined) return
-		if (this.allUsers[sID].world === null) return
-		this.allUsers[sID].world.launchMap(mapName, false, true)
+		const world = this.allUsers[sID].world
+		if (world === null) return
+		world.launchMap(mapName, false, true)
 
 		{
-			if (this.io !== null)
-				this.io.in(this.allUsers[sID].world.worldId).emit("map", mapName)
+			if (this.io !== null && world.worldId !== null) this.io.in(world.worldId).emit('map', mapName)
 			else {
-				Object.keys(this.allUsers[sID].world.users).forEach((wsID) => {
-					if (this.allUsers[sID].world.users[wsID] !== undefined) {
-						if (this.allUsers[sID].world.users[wsID].ws !== null) {
+				Object.keys(world.users).forEach((wsID) => {
+					if (world.users[wsID] !== undefined) {
+						if (world.users[wsID].ws !== null) {
 							if (Common.packager === Packager.JSON)
-								this.allUsers[sID].world.users[wsID].ws.send(JSON.stringify({ type: "map", params: { map: mapName } }))
-							else if (Common.packager === Packager.MsgPacker)
-								this.allUsers[sID].world.users[wsID].ws.send(pack({ type: "map", params: { map: mapName } }))
+								world.users[wsID].ws.send(JSON.stringify({ type: 'map', params: { map: mapName } }))
+							/* else if (Common.packager === Packager.MsgPacker)
+								world.users[wsID].ws.send(pack({ type: "map", params: { map: mapName } })) */
 						}
 					}
 				})
@@ -449,20 +530,22 @@ class AppServer {
 
 	private OnScenario(sID: string, scenarioName: string) {
 		console.log(`Scenario: ${scenarioName}`)
-		if (this.allUsers[sID].world === null) return
-		this.allUsers[sID].world.launchScenario(scenarioName, false)
+		const world = this.allUsers[sID].world
+		if (world === null) return
+		world.launchScenario(scenarioName, false)
 
 		{
-			if (this.io !== null)
-				this.io.in(this.allUsers[sID].world.worldId).emit("scenario", scenarioName)
+			if (this.io !== null && world.worldId !== null) this.io.in(world.worldId).emit('scenario', scenarioName)
 			else {
-				Object.keys(this.allUsers[sID].world.users).forEach((wsID) => {
-					if (this.allUsers[sID].world.users[wsID] !== undefined) {
-						if (this.allUsers[sID].world.users[wsID].ws !== null) {
+				Object.keys(world.users).forEach((wsID) => {
+					if (world.users[wsID] !== undefined) {
+						if (world.users[wsID].ws !== null) {
 							if (Common.packager === Packager.JSON)
-								this.allUsers[sID].world.users[wsID].ws.send(JSON.stringify({ type: "scenario", params: { scenario: scenarioName } }))
-							else if (Common.packager === Packager.MsgPacker)
-								this.allUsers[sID].world.users[wsID].ws.send(pack({ type: "scenario", params: { scenario: scenarioName } }))
+								world.users[wsID].ws.send(
+									JSON.stringify({ type: 'scenario', params: { scenario: scenarioName } })
+								)
+							/* else if (Common.packager === Packager.MsgPacker)
+								world.users[wsID].ws.send(pack({ type: "scenario", params: { scenario: scenarioName } })) */
 						}
 					}
 				})
@@ -481,33 +564,34 @@ class AppServer {
 	private OnMessage(messageData: { [id: string]: string }) {
 		if (messageData.sID === undefined) return
 		if (this.allUsers[messageData.sID] === undefined) return
-		if (this.allUsers[messageData.sID].uID === null) return
-		if (this.allUsers[messageData.sID].world === null) {
-			if (this.io !== null)
-				this.io.in(messageData.sID).emit("message", messageData)
+		const uID = this.allUsers[messageData.sID].uID
+		if (uID === null) return
+		const world = this.allUsers[messageData.sID].world
+		if (world === null) {
+			if (this.io !== null) this.io.in(messageData.sID).emit('message', messageData)
 			else {
-				if (this.allUsers[messageData.sID].ws !== null) {
+				const ws = this.allUsers[messageData.sID].ws
+				if (ws !== null) {
 					if (Common.packager === Packager.JSON)
-						this.allUsers[messageData.sID].ws.send(JSON.stringify({ type: "message", params: messageData }))
-					else if (Common.packager === Packager.MsgPacker)
-						this.allUsers[messageData.sID].ws.send(pack({ type: "message", params: messageData }))
+						ws.send(JSON.stringify({ type: 'message', params: messageData }))
+					/* else if (Common.packager === Packager.MsgPacker)
+						ws.send(pack({ type: "message", params: messageData })) */
 				}
 			}
 			return
 		}
-		this.allUsers[messageData.sID].world.chatData.push({ from: this.allUsers[messageData.sID].uID, message: messageData.message })
+		world.chatData.push({ from: uID, message: messageData.message })
 
 		{
-			if (this.io !== null)
-				this.io.in(this.allUsers[messageData.sID].world.worldId).emit("message", messageData)
+			if (this.io !== null && world.worldId !== null) this.io.in(world.worldId).emit('message', messageData)
 			else {
-				Object.keys(this.allUsers[messageData.sID].world.users).forEach((wsID) => {
-					if (this.allUsers[messageData.sID].world.users[wsID] !== undefined) {
-						if (this.allUsers[messageData.sID].world.users[wsID].ws !== null) {
+				Object.keys(world.users).forEach((wsID) => {
+					if (world.users[wsID] !== undefined) {
+						if (world.users[wsID].ws !== null) {
 							if (Common.packager === Packager.JSON)
-								this.allUsers[messageData.sID].world.users[wsID].ws.send(JSON.stringify({ type: "message", params: messageData }))
-							else if (Common.packager === Packager.MsgPacker)
-								this.allUsers[messageData.sID].world.users[wsID].ws.send(pack({ type: "message", params: messageData }))
+								world.users[wsID].ws.send(JSON.stringify({ type: 'message', params: messageData }))
+							/* else if (Common.packager === Packager.MsgPacker)
+								world.users[wsID].ws.send(pack({ type: "message", params: messageData })) */
 						}
 					}
 				})
@@ -522,16 +606,20 @@ class AppServer {
 		let alldata = this.GetLatestWorldData(worldId)
 
 		{
-			if (this.io !== null)
-				this.io.in(worldId).emit("update", alldata)
+			if (this.io !== null) this.io.in(worldId).emit('update', alldata)
 			else {
 				Object.keys(this.allWorlds[worldId].users).forEach((sID) => {
-					if ((this.allWorlds[worldId].users[sID] !== undefined) && (this.allWorlds[worldId].users[sID].uID !== null)) {
+					if (
+						this.allWorlds[worldId].users[sID] !== undefined &&
+						this.allWorlds[worldId].users[sID].uID !== null
+					) {
 						if (this.allWorlds[worldId].users[sID].ws !== null)
 							if (Common.packager === Packager.JSON)
-								this.allWorlds[worldId].users[sID].ws.send(JSON.stringify({ type: "update", params: alldata }))
-							else if (Common.packager === Packager.MsgPacker)
-								this.allWorlds[worldId].users[sID].ws.send(pack({ type: "update", params: alldata }))
+								this.allWorlds[worldId].users[sID].ws.send(
+									JSON.stringify({ type: 'update', params: alldata })
+								)
+						/* else if (Common.packager === Packager.MsgPacker)
+							this.allWorlds[worldId].users[sID].ws.send(pack({ type: "update", params: alldata })) */
 					}
 				})
 			}
@@ -543,14 +631,17 @@ class AppServer {
 		let alldata = this.GetLatestWorldData(null)
 
 		Object.keys(this.allUsers).forEach((sID) => {
-			if ((this.allUsers[sID] !== undefined) && (this.allUsers[sID].uID !== null) && (this.allUsers[sID].world === null)) {
-				if (this.io !== null)
-					this.io.in(sID).emit("update", alldata)
+			if (
+				this.allUsers[sID] !== undefined &&
+				this.allUsers[sID].uID !== null &&
+				this.allUsers[sID].world === null
+			) {
+				if (this.io !== null) this.io.in(sID).emit('update', alldata)
 				else if (this.allUsers[sID].ws) {
 					if (Common.packager === Packager.JSON)
-						this.allUsers[sID].ws.send(JSON.stringify({ type: "update", params: alldata }))
-					else if (Common.packager === Packager.MsgPacker)
-						this.allUsers[sID].ws.send(pack({ type: "update", params: alldata }))
+						this.allUsers[sID].ws.send(JSON.stringify({ type: 'update', params: alldata }))
+					/* else if (Common.packager === Packager.MsgPacker)
+						this.allUsers[sID].ws.send(pack({ type: "update", params: alldata })) */
 				}
 			}
 		})
@@ -561,16 +652,16 @@ class AppServer {
 		// All World Id
 		{
 			Object.keys(this.allWorlds).forEach((id) => {
-				const users = []
+				const users: string[] = []
 				Object.keys(this.allWorlds[id].users).forEach((sID) => {
-					if (this.allWorlds[id].users[sID] !== undefined) {
+					if (this.allWorlds[id].users[sID] !== undefined && this.allWorlds[id].users[sID].uID !== null) {
 						users.push(this.allWorlds[id].users[sID].uID)
 					}
 				})
 				alldata[id] = {
 					uID: id,
 					msgType: MessageTypes.World,
-					users: users
+					users: users,
 				}
 			})
 		}
@@ -578,7 +669,7 @@ class AppServer {
 		// All Player Data
 		{
 			Object.keys(this.allUsers).forEach((id) => {
-				if ((this.allUsers[id] !== undefined) && (this.allUsers[id].uID != null)) {
+				if (this.allUsers[id] !== undefined && this.allUsers[id].uID != null) {
 					if (this.allUsers[id].world !== null) {
 						this.allUsers[id].data.timeScaleTarget = this.allUsers[id].world.timeScaleTarget
 						this.allUsers[id].data.sun.elevation = this.allUsers[id].world.sunConf.elevation
@@ -600,7 +691,7 @@ class AppServer {
 				this.allWorlds[worldId].characters.forEach((char) => {
 					char.ping = Date.now() - char.timeStamp
 					char.timeStamp = Date.now()
-					alldata[char.uID] = char.Out()
+					if (char.uID !== null) alldata[char.uID] = char.Out()
 				})
 			}
 
@@ -609,7 +700,7 @@ class AppServer {
 				this.allWorlds[worldId].vehicles.forEach((vehi) => {
 					vehi.ping = Date.now() - vehi.timeStamp
 					vehi.timeStamp = Date.now()
-					alldata[vehi.uID] = vehi.Out()
+					if (vehi.uID !== null) alldata[vehi.uID] = vehi.Out()
 				})
 			}
 
@@ -618,7 +709,7 @@ class AppServer {
 				this.allWorlds[worldId].waters.forEach((water) => {
 					water.ping = Date.now() - water.timeStamp
 					water.timeStamp = Date.now()
-					alldata[water.uID] = water.Out()
+					if (water.uID !== null) alldata[water.uID] = water.Out()
 				})
 			}
 		}
@@ -628,14 +719,17 @@ class AppServer {
 
 	private RemoveUnusedWorlds() {
 		let toRemoveServer: WorldServer[] = []
-		Object.keys(this.allWorlds).forEach(worldId => {
+		Object.keys(this.allWorlds).forEach((worldId) => {
 			if (this.allWorlds[worldId] !== undefined) {
 				let toRemoveUser: string[] = []
 				Object.keys(this.allWorlds[worldId].users).forEach((sID) => {
 					if (this.allWorlds[worldId].users[sID] === undefined) toRemoveUser.push(sID)
 				})
 				while (toRemoveUser.length) {
-					delete this.allWorlds[worldId].users[toRemoveUser.pop()]
+					const user = toRemoveUser.pop()
+					if (user != undefined) {
+						delete this.allWorlds[worldId].users[user]
+					}
 				}
 				let count = 0
 				Object.keys(this.allWorlds[worldId].users).forEach((sID) => {
@@ -648,27 +742,37 @@ class AppServer {
 		})
 
 		while (toRemoveServer.length) {
-			let hasNoHold = true
-			const worldId = toRemoveServer.pop().worldId
-			Object.keys(this.allUsers).forEach((sID) => {
-				if (worldId.includes(sID)) { hasNoHold = false }
-			})
-			if (hasNoHold) {
-				console.log("World Removed: " + worldId)
-				delete this.allWorlds[worldId]
+			const server = toRemoveServer.pop()
+			if (server !== undefined) {
+				let hasNoHold = true
+				const worldId = server.worldId
+				if (worldId !== null) {
+					Object.keys(this.allUsers).forEach((sID) => {
+						if (worldId.includes(sID)) {
+							hasNoHold = false
+						}
+					})
+					if (hasNoHold) {
+						console.log('World Removed: ' + worldId)
+						delete this.allWorlds[worldId]
+					}
+				}
 			}
 		}
 	}
 
 	private Status() {
-		if (Common.eachNewWorld === WorldCreation.OneForEach)
-			this.RemoveUnusedWorlds()
+		if (Common.eachNewWorld === WorldCreation.OneForEach) this.RemoveUnusedWorlds()
 		console.log()
-		console.log("-----------")
+		console.log('-----------')
 		console.log(`Users: ${Object.keys(this.allUsers).length}, Worlds: ${Object.keys(this.allWorlds).length}`)
-		Object.keys(this.allWorlds).forEach(wid => {
+		Object.keys(this.allWorlds).forEach((wid) => {
 			if (this.allWorlds[wid] !== undefined) {
-				console.log(`\tWID: ${this.allWorlds[wid].worldId}, Users: ${Object.keys(this.allWorlds[wid].users).length}, Running: ${(this.allWorlds[wid].runner !== null)}`)
+				console.log(
+					`\tWID: ${this.allWorlds[wid].worldId}, Users: ${
+						Object.keys(this.allWorlds[wid].users).length
+					}, Running: ${this.allWorlds[wid].runner !== null}`
+				)
 				Object.keys(this.allWorlds[wid].users).forEach((sID) => {
 					if (this.allWorlds[wid].users[sID] !== undefined) {
 						console.log(`\t\t${sID}: ${this.allWorlds[wid].users[sID].uID}`)
@@ -679,11 +783,56 @@ class AppServer {
 	}
 
 	public Start() {
-		this.server.listen(this.port, privateHost ? "127.0.0.1" : "0.0.0.0", () => {
+		this.server = new http.Server(this.app)
+		if (Common.conn === Communication.SocketIO) {
+			this.io = new Server(this.server, {
+				parser: parser,
+				cors: {
+					origin: ['https://admin.socket.io'],
+					credentials: true,
+				},
+			})
+			instrument(this.io, { auth: false, mode: 'development' })
+			this.io.engine.on('connection', (rawSocket) => {
+				rawSocket.request = null
+			})
+			this.wss = null
+		} else if (Common.conn === Communication.WebSocket) {
+			this.io = null
+			this.wss = new WebSocketServer({ server: this.server /* port: 3001 */ })
+		} else {
+			this.io = null
+			this.wss = null
+		}
+
+		this.server.listen(this.port, privateHost ? '127.0.0.1' : '0.0.0.0', () => {
 			console.log(`Server listening on port ${this.port}.`)
+			this.initCommunication()
 		})
 	}
 
+	public Stop() {
+		if (Common.conn === Communication.SocketIO && this.io !== null) {
+			this.io.close()
+			this.io = null
+		} else if (Common.conn === Communication.WebSocket && this.wss !== null) {
+			const connKeys = Object.keys(this.allUsers)
+			for (let i = 0; i < connKeys.length; ++i) {
+				const ws = this.allUsers[connKeys[i]].ws
+				if (ws !== null) ws.close(4000, 'server Closed')
+			}
+			this.wss.close()
+			this.wss = null
+		}
+
+		if (this.server !== null) {
+			this.server.close()
+			this.server = null
+		}
+		console.log(`Server closed on port ${port}.`)
+	}
 }
 
-new AppServer(port).Start()
+if (path.basename(process.argv[0]).includes('node')) {
+	new AppServer(port).Start()
+}

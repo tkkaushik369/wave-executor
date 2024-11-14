@@ -33,31 +33,29 @@ export class Helicopter extends Vehicle implements IControllable, IWorldEntity {
 		this.readHelicopterData(gltf)
 
 		this.actions = {
-			'ascend': new KeyBinding('ShiftLeft'),
-			'descend': new KeyBinding('Space'),
-			'pitchUp': new KeyBinding('KeyS'),
-			'pitchDown': new KeyBinding('KeyW'),
-			'yawLeft': new KeyBinding('KeyQ'),
-			'yawRight': new KeyBinding('KeyE'),
-			'rollLeft': new KeyBinding('KeyA'),
-			'rollRight': new KeyBinding('KeyD'),
-			'exitVehicle': new KeyBinding('KeyF'),
-			'seat_switch': new KeyBinding('KeyX'),
-			'view': new KeyBinding('KeyV'),
+			ascend: new KeyBinding('ShiftLeft'),
+			descend: new KeyBinding('Space'),
+			pitchUp: new KeyBinding('KeyS'),
+			pitchDown: new KeyBinding('KeyW'),
+			yawLeft: new KeyBinding('KeyQ'),
+			yawRight: new KeyBinding('KeyE'),
+			rollLeft: new KeyBinding('KeyA'),
+			rollRight: new KeyBinding('KeyD'),
+			exitVehicle: new KeyBinding('KeyF'),
+			seat_switch: new KeyBinding('KeyX'),
+			view: new KeyBinding('KeyV'),
 		}
 	}
 
 	public noDirectionPressed(): boolean {
-		let result =
-			!this.actions.ascend.isPressed &&
-			!this.actions.descend.isPressed
+		let result = !this.actions.ascend.isPressed && !this.actions.descend.isPressed
 
 		return result
 	}
 
 	public update(timeStep: number): void {
 		super.update(timeStep)
-		if (this.world !== null && (this.world.isClient && (this.world.worldId !== null))) return
+		if (this.world !== null && this.world.isClient && this.world.worldId !== null) return
 
 		// Rotors visuals
 		if (this.controllingCharacter !== null) {
@@ -198,35 +196,41 @@ export class Helicopter extends Vehicle implements IControllable, IWorldEntity {
 	public inputReceiverInit(): void {
 		super.inputReceiverInit()
 		if (this.controllingCharacter === null) return
-		if (this.controllingCharacter.player !== null) this.controllingCharacter.player.uiControls = UiControlsGroup.Helicopter
+		if (this.controllingCharacter.player !== null)
+			this.controllingCharacter.player.uiControls = UiControlsGroup.Helicopter
 	}
 	public addToWorld(world: WorldBase): void {
 		super.addToWorld(world)
-		world.world.addEventListener('preStep', () => { this.physicsPreStep(this.collision, this) })
+		world.world.addEventListener('preStep', () => {
+			this.physicsPreStep(this.collision, this)
+		})
 	}
 
 	public removeFromWorld(world: WorldBase): void {
 		super.removeFromWorld(world)
-		world.world.removeEventListener('preStep', () => { this.physicsPreStep(this.collision, this) })
+		world.world.removeEventListener('preStep', () => {
+			this.physicsPreStep(this.collision, this)
+		})
 	}
 
 	public Out() {
 		const msg = super.Out()
 		const doors: { [id: string]: any }[] = []
 		this.seats.forEach((seat) => {
-			if ((seat.door !== null) && (seat.door.doorObject !== null)) doors.push({
-				position: {
-					x: seat.door.doorObject.position.x,
-					y: seat.door.doorObject.position.y,
-					z: seat.door.doorObject.position.z
-				},
-				quaternion: {
-					x: seat.door.doorObject.quaternion.x,
-					y: seat.door.doorObject.quaternion.y,
-					z: seat.door.doorObject.quaternion.z,
-					w: seat.door.doorObject.quaternion.w
-				}
-			})
+			if (seat.door !== null && seat.door.doorObject !== null)
+				doors.push({
+					position: {
+						x: seat.door.doorObject.position.x,
+						y: seat.door.doorObject.position.y,
+						z: seat.door.doorObject.position.z,
+					},
+					quaternion: {
+						x: seat.door.doorObject.quaternion.x,
+						y: seat.door.doorObject.quaternion.y,
+						z: seat.door.doorObject.quaternion.z,
+						w: seat.door.doorObject.quaternion.w,
+					},
+				})
 		})
 		const rotors: { [id: string]: any }[] = []
 		this.rotors.forEach((rotor) => {
@@ -235,8 +239,8 @@ export class Helicopter extends Vehicle implements IControllable, IWorldEntity {
 					x: rotor.quaternion.x,
 					y: rotor.quaternion.y,
 					z: rotor.quaternion.z,
-					w: rotor.quaternion.w
-				}
+					w: rotor.quaternion.w,
+				},
 			})
 		})
 		msg.data['entity'] = this.entityType
@@ -254,13 +258,13 @@ export class Helicopter extends Vehicle implements IControllable, IWorldEntity {
 					this.seats[i].door!.doorObject.position.set(
 						messages.data.doors[i].position.x,
 						messages.data.doors[i].position.y,
-						messages.data.doors[i].position.z,
+						messages.data.doors[i].position.z
 					)
 					this.seats[i].door!.doorObject.quaternion.set(
 						messages.data.doors[i].quaternion.x,
 						messages.data.doors[i].quaternion.y,
 						messages.data.doors[i].quaternion.z,
-						messages.data.doors[i].quaternion.w,
+						messages.data.doors[i].quaternion.w
 					)
 				}
 			}
@@ -271,7 +275,7 @@ export class Helicopter extends Vehicle implements IControllable, IWorldEntity {
 					messages.data.rotors[i].quaternion.x,
 					messages.data.rotors[i].quaternion.y,
 					messages.data.rotors[i].quaternion.z,
-					messages.data.rotors[i].quaternion.w,
+					messages.data.rotors[i].quaternion.w
 				)
 			}
 		}

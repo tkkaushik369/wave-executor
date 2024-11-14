@@ -1,5 +1,5 @@
 import { MapConfigType, MapConfigFOType } from '../../'
-import { TestScene } from "./TestScene";
+import { TestScene } from './TestScene'
 
 export const TestConfig: MapConfigType = {
 	name: 'test',

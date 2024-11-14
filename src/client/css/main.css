@@ -1,23 +1,48 @@
 :root {
 	--top: 54px;
 	--bottom: 190px;
+	color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+	body {
+		background: #333333aa;
+		color: white;
+	}
+}
+
+@media (prefers-color-scheme: light) {
+	body {
+		background: #ddddddaa;
+		color: black;
+	}
 }
 
 html,
-body {
+body,
+#root {
 	height: 100%;
 	width: 100%;
 	margin: 0;
 	padding: 0;
 }
 
+#root {
+	position: absolute;
+	top: 0;
+	left: 0;
+	display: flex;
+	flex-direction: column;
+}
+
 body {
 	overflow: hidden;
 	margin: 0px;
 	color: rgba(200, 200, 200, 0.6);
-	background-color: rgba(1, 1, 1, 1);
+	background-color: #1a1a1a;
 	outline: 1px solid rgba(0, 250, 250, 0.2);
 	outline-offset: -2px;
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
 .bodyTransparent {
@@ -193,6 +218,22 @@ body {
 	display: block;
 }
 
+#work {
+	display: flex;
+	position: relative;
+	height: 100%;
+	width: 100%;
+	/* border: 1px solid rgba(255, 0, 0, 0.417); */
+	box-sizing: border-box;
+}
+
+#canvas {
+	position: relative;
+	display: flex;
+	height: 100%;
+	width: 100%;
+}
+
 .replay#work::after {
 	content: '';
 	position: absolute;
@@ -219,6 +260,7 @@ body {
 	box-sizing: border-box;
 	z-index: 1000000000;
 }
+
 .crosshair#work::before {
 	content: '';
 	position: absolute;

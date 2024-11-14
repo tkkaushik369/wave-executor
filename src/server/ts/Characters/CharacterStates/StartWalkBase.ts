@@ -47,7 +47,10 @@ export class StartWalkBase extends CharacterStateBase {
 
 		if (this.noDirection()) {
 			if (this.timer < 0.1) {
-				let angle = Utility.getSignedAngleBetweenVectors(this.character.orientation, this.character.orientationTarget)
+				let angle = Utility.getSignedAngleBetweenVectors(
+					this.character.orientation,
+					this.character.orientationTarget
+				)
 
 				if (angle > Math.PI * 0.4) {
 					this.character.setState(new IdleRotateLeft(this.character))

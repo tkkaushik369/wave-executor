@@ -1,12 +1,10 @@
-import {
-	CharacterStateBase,
-} from './_CharacterStateLibrary'
+import { CharacterStateBase } from './_CharacterStateLibrary'
 import { ICharacterState } from '../../Interfaces/ICharacterState'
 import { Character } from '../Character'
 
 export class Falling extends CharacterStateBase implements ICharacterState {
 	state = 'Falling'
-	
+
 	constructor(character: Character) {
 		super(character)
 		// bind functions

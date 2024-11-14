@@ -37,7 +37,6 @@ export abstract class CharacterStateBase implements ICharacterState {
 		this.setAppropriateStartWalkState = this.setAppropriateStartWalkState.bind(this)
 		this.playAnimation = this.playAnimation.bind(this)
 
-
 		// init
 		this.character = character
 
@@ -67,10 +66,12 @@ export abstract class CharacterStateBase implements ICharacterState {
 		} else if (this.canFindVehiclesToEnter && this.character.actions.enter_passenger.justPressed) {
 			this.character.findVehicleToEnter(false)
 		} else if (this.canEnterVehicles && this.character.vehicleEntryInstance !== null) {
-			if (this.character.actions.up.justPressed ||
+			if (
+				this.character.actions.up.justPressed ||
 				this.character.actions.down.justPressed ||
 				this.character.actions.left.justPressed ||
-				this.character.actions.right.justPressed) {
+				this.character.actions.right.justPressed
+			) {
 				this.character.vehicleEntryInstance = null
 				this.character.actions.up.isPressed = false
 			}
@@ -78,15 +79,27 @@ export abstract class CharacterStateBase implements ICharacterState {
 	}
 
 	public noDirection(): boolean {
-		return !this.character.actions.up.isPressed && !this.character.actions.down.isPressed && !this.character.actions.left.isPressed && !this.character.actions.right.isPressed
+		return (
+			!this.character.actions.up.isPressed &&
+			!this.character.actions.down.isPressed &&
+			!this.character.actions.left.isPressed &&
+			!this.character.actions.right.isPressed
+		)
 	}
 
 	public anyDirection(): boolean {
-		return this.character.actions.up.isPressed || this.character.actions.down.isPressed || this.character.actions.left.isPressed || this.character.actions.right.isPressed
+		return (
+			this.character.actions.up.isPressed ||
+			this.character.actions.down.isPressed ||
+			this.character.actions.left.isPressed ||
+			this.character.actions.right.isPressed
+		)
 	}
 
 	public fallInAir(): void {
-		if (!this.character.rayHasHit) { this.character.setState(new Falling(this.character)) }
+		if (!this.character.rayHasHit) {
+			this.character.setState(new Falling(this.character))
+		}
 	}
 
 	public animationEnded(timeStep: number): boolean {
@@ -118,7 +131,10 @@ export abstract class CharacterStateBase implements ICharacterState {
 
 	public setAppropriateStartWalkState(): void {
 		let range = Math.PI
-		let angle = Utility.getSignedAngleBetweenVectors(this.character.orientation, this.character.getCameraRelativeMovementVector())
+		let angle = Utility.getSignedAngleBetweenVectors(
+			this.character.orientation,
+			this.character.getCameraRelativeMovementVector()
+		)
 
 		if (angle > range * 0.8) {
 			this.character.setState(new StartWalkBackLeft(this.character))

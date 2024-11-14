@@ -15,7 +15,7 @@ export class ConvexCollider implements ICollider {
 		let defaults = {
 			mass: 0,
 			position: mesh.position,
-			friction: 0.3
+			friction: 0.3,
 		}
 		options = Utility.setDefaults(options, defaults)
 		this.options = options
@@ -37,7 +37,7 @@ export class ConvexCollider implements ICollider {
 		let physBox = new CANNON.Body({
 			mass: options.mass,
 			position: options.position,
-			shape
+			shape,
 		})
 
 		physBox.material = mat

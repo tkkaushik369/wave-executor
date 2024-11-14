@@ -17,7 +17,7 @@ export class VehicleSpawnPoint implements ISpawnPoint {
 	public type: string | null
 	public subtype: string | null
 	public driver: string | null // ai | player
-	public playerData: { player: Player, position: THREE.Vector3 } | null
+	public playerData: { player: Player; position: THREE.Vector3 } | null
 	public firstAINode: string | null
 
 	public object: THREE.Object3D
@@ -58,7 +58,7 @@ export class VehicleSpawnPoint implements ISpawnPoint {
 			let character = new Character()
 			// world.getGLTF('boxman.glb', (gltf: any) => {
 			character.setModel(model)
-			character.uID = vehicle.uID + "_driver"
+			character.uID = vehicle.uID + '_driver'
 			// })
 			world.add(character)
 			if (player !== undefined) {
@@ -90,20 +90,18 @@ export class VehicleSpawnPoint implements ISpawnPoint {
 			return character
 		}
 
-		let callerVehicle = (model: any, playerData?: { player: Player, position: THREE.Vector3 }): Vehicle => {
+		let callerVehicle = (model: any, playerData?: { player: Player; position: THREE.Vector3 }): Vehicle => {
 			let worldPos = new THREE.Vector3()
 			let worldQuat = new THREE.Quaternion()
 
 			this.object.getWorldPosition(worldPos)
-			if (playerData !== undefined)
-				worldPos = worldPos.add(playerData.position)
+			if (playerData !== undefined) worldPos = worldPos.add(playerData.position)
 
 			this.object.getWorldQuaternion(worldQuat)
 
 			let vehicle: Vehicle = this.getNewVehicleByType(model)
 			vehicle.uID = this.userData.name
-			if (this.playerData !== null)
-				vehicle.uID += "" + this.playerData.player.uID
+			if (this.playerData !== null) vehicle.uID += '' + this.playerData.player.uID
 			vehicle.spawnPoint = this.object
 
 			vehicle.setPosition(worldPos.x, worldPos.y + 1, worldPos.z)
@@ -111,14 +109,18 @@ export class VehicleSpawnPoint implements ISpawnPoint {
 			world.add(vehicle)
 
 			if (this.driver !== null) {
-				if ((world.lastMapID !== null) && (MapConfig[world.lastMapID] !== undefined)) {
+				if (world.lastMapID !== null && MapConfig[world.lastMapID] !== undefined) {
 					for (let j = 0; j < MapConfig[world.lastMapID].characters.length; j++) {
 						const char = MapConfig[world.lastMapID].characters[j]
-						if (('character' == char.type) /* && (this.subtype == char.subtype) */) {
+						if ('character' == char.type /* && (this.subtype == char.subtype) */) {
 							if (typeof char.objCaller === 'string') {
 								world.getGLTF(char.objCaller, (gltf: any) => {
 									let model = gltf
-									return callerCharacter(model, vehicle, (playerData !== undefined) ? playerData.player : undefined)
+									return callerCharacter(
+										model,
+										vehicle,
+										playerData !== undefined ? playerData.player : undefined
+									)
 								})
 							}
 							break
@@ -129,19 +131,19 @@ export class VehicleSpawnPoint implements ISpawnPoint {
 			return vehicle
 		}
 
-		if ((world.lastMapID !== null) && (MapConfig[world.lastMapID] !== undefined)) {
+		if (world.lastMapID !== null && MapConfig[world.lastMapID] !== undefined) {
 			for (let j = 0; j < MapConfig[world.lastMapID].vehicles.length; j++) {
 				const vehi = MapConfig[world.lastMapID].vehicles[j]
-				if ((type == vehi.type) && (this.subtype == vehi.subtype)) {
+				if (type == vehi.type && this.subtype == vehi.subtype) {
 					// console.log(type, this.subtype)
 					if (vehi.objCaller instanceof BaseScene) {
 						// let model = vehi.objCaller.getVehicle(type, this.subtype)
 						let model = new (vehi.objCaller as any).constructor().getVehicle(type, this.subtype)
-						return callerVehicle(model, (this.playerData === null) ? undefined : this.playerData)
+						return callerVehicle(model, this.playerData === null ? undefined : this.playerData)
 					} else {
 						world.getGLTF(vehi.objCaller, (gltf: any) => {
 							let model = gltf
-							return callerVehicle(model, (this.playerData === null) ? undefined : this.playerData)
+							return callerVehicle(model, this.playerData === null ? undefined : this.playerData)
 						})
 					}
 					break
@@ -155,23 +157,30 @@ export class VehicleSpawnPoint implements ISpawnPoint {
 		switch (this.type) {
 			case 'car': {
 				switch (this.subtype) {
-					case 'car_test': return new Car(model)
-					default: return new Car(model)
+					case 'car_test':
+						return new Car(model)
+					default:
+						return new Car(model)
 				}
 			}
 			case 'heli': {
 				switch (this.subtype) {
-					case 'heli_test': return new Helicopter(model)
-					default: return new Helicopter(model)
+					case 'heli_test':
+						return new Helicopter(model)
+					default:
+						return new Helicopter(model)
 				}
 			}
 			case 'airplane': {
 				switch (this.subtype) {
-					case 'airplane_test': return new Airplane(model)
-					default: return new Airplane(model)
+					case 'airplane_test':
+						return new Airplane(model)
+					default:
+						return new Airplane(model)
 				}
 			}
-			default: return new Car(model)
+			default:
+				return new Car(model)
 		}
 	}
 }

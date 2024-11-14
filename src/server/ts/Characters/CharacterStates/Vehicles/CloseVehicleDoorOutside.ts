@@ -1,6 +1,4 @@
-import {
-	CharacterStateBase,
-} from '../_CharacterStateLibrary'
+import { CharacterStateBase } from '../_CharacterStateLibrary'
 import { Character } from '../../Character'
 import { VehicleSeat } from '../../../Vehicles/VehicleSeat'
 import { Side } from '../../../Enums/Side'

@@ -78,7 +78,7 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 
 		this.world = null
 		this.spawnPoint = null
-		this.drive = "awd"
+		this.drive = 'awd'
 		this.camera = null
 		this.controllingCharacter = null
 
@@ -129,9 +129,11 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 
 	public update(timeStep: number): void {
 		if (this.world === null) return
-		if (this.world.isClient && (this.world.worldId !== null)) {
+		if (this.world.isClient && this.world.worldId !== null) {
 			const world = this.world as WorldBase
-			this.lights.forEach((li) => { li.power = (world.sunConf.elevation > 3) ? 1 : 200 })
+			this.lights.forEach((li) => {
+				li.power = world.sunConf.elevation > 3 ? 1 : 200
+			})
 			return
 		}
 
@@ -157,17 +159,25 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 			let transform = (this.rayCastVehicle.wheelInfos[i] as CANNON.WheelInfo).worldTransform
 
 			let wheelObject = this.wheels[i].wheelObject
-			wheelObject.position.copy(Utility.threeVector(new CANNON.Vec3(
-				transform.position.x + this.collision.interpolatedPosition.x - this.collision.position.x,
-				transform.position.y + this.collision.interpolatedPosition.y - this.collision.position.y,
-				transform.position.z + this.collision.interpolatedPosition.z - this.collision.position.z,
-			)))
-			wheelObject.quaternion.copy(Utility.threeQuat(new CANNON.Quaternion(
-				transform.quaternion.x + this.collision.interpolatedQuaternion.x - this.collision.quaternion.x,
-				transform.quaternion.y + this.collision.interpolatedQuaternion.y - this.collision.quaternion.y,
-				transform.quaternion.z + this.collision.interpolatedQuaternion.z - this.collision.quaternion.z,
-				transform.quaternion.w + this.collision.interpolatedQuaternion.z - this.collision.quaternion.z,
-			)))
+			wheelObject.position.copy(
+				Utility.threeVector(
+					new CANNON.Vec3(
+						transform.position.x + this.collision.interpolatedPosition.x - this.collision.position.x,
+						transform.position.y + this.collision.interpolatedPosition.y - this.collision.position.y,
+						transform.position.z + this.collision.interpolatedPosition.z - this.collision.position.z
+					)
+				)
+			)
+			wheelObject.quaternion.copy(
+				Utility.threeQuat(
+					new CANNON.Quaternion(
+						transform.quaternion.x + this.collision.interpolatedQuaternion.x - this.collision.quaternion.x,
+						transform.quaternion.y + this.collision.interpolatedQuaternion.y - this.collision.quaternion.y,
+						transform.quaternion.z + this.collision.interpolatedQuaternion.z - this.collision.quaternion.z,
+						transform.quaternion.w + this.collision.interpolatedQuaternion.z - this.collision.quaternion.z
+					)
+				)
+			)
 		}
 
 		this.updateMatrixWorld()
@@ -181,7 +191,7 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 	}
 
 	public onInputChange(): void {
-		if ((this.controllingCharacter === null) || (this.controllingCharacter.occupyingSeat === null)) return
+		if (this.controllingCharacter === null || this.controllingCharacter.occupyingSeat === null) return
 		let len = this.controllingCharacter.occupyingSeat.connectedSeats.length
 		if (this.actions.seat_switch.justPressed && len > 0) {
 			this.controllingCharacter.modelContainer.visible = true
@@ -217,9 +227,11 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 		// Free camera
 		if (code === 'KeyC' && pressed === true && isShift === true) {
 			this.resetControls()
-			if ((this.controllingCharacter !== null) && (this.controllingCharacter.player !== null)) {
+			if (this.controllingCharacter !== null && this.controllingCharacter.player !== null) {
 				this.controllingCharacter.player.cameraOperator.characterCaller = this.controllingCharacter
-				this.controllingCharacter.player.inputManager.setInputReceiver(this.controllingCharacter.player.cameraOperator)
+				this.controllingCharacter.player.inputManager.setInputReceiver(
+					this.controllingCharacter.player.cameraOperator
+				)
 			}
 		} else if (code === 'KeyR' && pressed === true && isShift === true) {
 			if (this.world !== null) this.world.restartScenario()
@@ -239,9 +251,12 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 	public setFirstPersonView(value: boolean): void {
 		this.firstPerson = value
 		if (this.controllingCharacter !== null) {
-
 			if (this.controllingCharacter.player !== null) {
-				if ((this.world !== null) && (this.world.player !== null) && (this.world.player.uID === this.controllingCharacter.player.uID))
+				if (
+					this.world !== null &&
+					this.world.player !== null &&
+					this.world.player.uID === this.controllingCharacter.player.uID
+				)
 					this.controllingCharacter.modelContainer.visible = !value
 				// this.controllingCharacter.player.cameraOperator.followMode = value
 				if (value) {
@@ -285,8 +300,7 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 		return
 	}
 	public handleMouseMove(deltaX: number, deltaY: number): void {
-
-		if ((this.controllingCharacter !== null) && (this.controllingCharacter.player !== null))
+		if (this.controllingCharacter !== null && this.controllingCharacter.player !== null)
 			this.controllingCharacter.player.cameraOperator.move(deltaX, deltaY)
 	}
 
@@ -300,12 +314,13 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 	}
 
 	public inputReceiverUpdate(timeStep: number): void {
-		if ((this.controllingCharacter === null) || (this.controllingCharacter.player === null)) return
-		if (this.firstPerson && (this.camera !== null)) {
+		if (this.controllingCharacter === null || this.controllingCharacter.player === null) return
+		if (this.firstPerson && this.camera !== null) {
 			let temp = new THREE.Vector3().copy(this.camera.position)
 			temp.applyQuaternion(this.quaternion)
 			this.controllingCharacter.player.cameraOperator.target.copy(temp.add(this.position))
-		} else {	// Position camera
+		} else {
+			// Position camera
 			this.controllingCharacter.player.cameraOperator.target.set(
 				this.position.x,
 				this.position.y + 0.5,
@@ -361,7 +376,7 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 
 	public removeFromWorld(world: WorldBase): void {
 		if (!_.includes(world.vehicles, this)) {
-			console.warn('Removing vehicle from a world in which it isn\'t present.')
+			console.warn("Removing vehicle from a world in which it isn't present.")
 		} else {
 			this.world = null
 			_.pull(world.vehicles, this)
@@ -401,13 +416,19 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 
 							let phys = new CANNON.Box(new CANNON.Vec3(child.scale.x, child.scale.y, child.scale.z))
 							phys.collisionFilterMask = ~CollisionGroups.TrimeshColliders
-							this.collision.addShape(phys, new CANNON.Vec3(child.position.x, child.position.y, child.position.z))
+							this.collision.addShape(
+								phys,
+								new CANNON.Vec3(child.position.x, child.position.y, child.position.z)
+							)
 						} else if (child.userData.shape === 'sphere') {
 							child.visible = false
 
 							let phys = new CANNON.Sphere(child.scale.x)
 							phys.collisionFilterGroup = CollisionGroups.TrimeshColliders
-							this.collision.addShape(phys, new CANNON.Vec3(child.position.x, child.position.y, child.position.z))
+							this.collision.addShape(
+								phys,
+								new CANNON.Vec3(child.position.x, child.position.y, child.position.z)
+							)
 						}
 					}
 					if (child.userData.data === 'navmesh') {
@@ -421,10 +442,10 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 		})
 
 		if (this.collision.shapes.length === 0) {
-			console.warn('Vehicle ' + typeof (this) + ' has no collision data.')
+			console.warn('Vehicle ' + typeof this + ' has no collision data.')
 		}
 		if (this.seats.length === 0) {
-			console.warn('Vehicle ' + typeof (this) + ' has no seats.')
+			console.warn('Vehicle ' + typeof this + ' has no seats.')
 		} else {
 			this.connectSeats()
 		}
@@ -470,46 +491,45 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 					z: this.quaternion.z,
 					w: this.quaternion.w,
 				},
-			}
+			},
 		}
 	}
 
 	public Set(messages: any) {
-		if (this.world)
-			this.world.zeroBody(this.collision)
+		if (this.world) this.world.zeroBody(this.collision)
 
 		this.collision.position.set(
 			messages.data.vehiclePosition.x,
 			messages.data.vehiclePosition.y,
-			messages.data.vehiclePosition.z,
+			messages.data.vehiclePosition.z
 		)
 		this.collision.quaternion.set(
 			messages.data.vehicleQuaternion.x,
 			messages.data.vehicleQuaternion.y,
 			messages.data.vehicleQuaternion.z,
-			messages.data.vehicleQuaternion.w,
+			messages.data.vehicleQuaternion.w
 		)
 		this.collision.interpolatedPosition.set(
 			messages.data.vehiclePosition.x,
 			messages.data.vehiclePosition.y,
-			messages.data.vehiclePosition.z,
+			messages.data.vehiclePosition.z
 		)
 		this.collision.interpolatedQuaternion.set(
 			messages.data.vehicleQuaternion.x,
 			messages.data.vehicleQuaternion.y,
 			messages.data.vehicleQuaternion.z,
-			messages.data.vehicleQuaternion.w,
+			messages.data.vehicleQuaternion.w
 		)
 		this.position.set(
 			messages.data.vehiclePosition.x,
 			messages.data.vehiclePosition.y,
-			messages.data.vehiclePosition.z,
+			messages.data.vehiclePosition.z
 		)
 		this.quaternion.set(
 			messages.data.vehicleQuaternion.x,
 			messages.data.vehicleQuaternion.y,
 			messages.data.vehicleQuaternion.z,
-			messages.data.vehicleQuaternion.w,
+			messages.data.vehicleQuaternion.w
 		)
 	}
 }

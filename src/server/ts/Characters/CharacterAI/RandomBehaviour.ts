@@ -24,7 +24,9 @@ export class RandomBehaviour extends CharacterAIBase implements ICharacterAI {
 		let rndBool = Math.random() > 0.5 ? true : false
 
 		if (rndInt === 0) {
-			this.character.setViewVector(new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5))
+			this.character.setViewVector(
+				new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5)
+			)
 
 			this.setCharacterTriggerAction('up', true)
 			this.character.charState.update(timeStep)

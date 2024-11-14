@@ -82,7 +82,10 @@ export class VehicleDoor {
 			const up = new THREE.Vector3(0, 1, 0).applyQuaternion(quat)
 
 			// Get imaginary positions
-			let trailerPos = back.clone().applyAxisAngle(up, this.sideMultiplier * this.rotation).add(this.doorWorldPos)
+			let trailerPos = back
+				.clone()
+				.applyAxisAngle(up, this.sideMultiplier * this.rotation)
+				.add(this.doorWorldPos)
 			let trailerPushedPos = trailerPos.clone().sub(vehicleVelDiff)
 
 			// Update last values

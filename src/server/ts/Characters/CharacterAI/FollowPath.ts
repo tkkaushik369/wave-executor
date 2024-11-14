@@ -45,14 +45,15 @@ export class FollowPath extends FollowTarget implements ICharacterAI {
 			if (this.character.controlledObject !== null) {
 				let speed = this.character.controlledObject.collision.velocity.length()
 
-				if ((slowDownAngle < 0.7 && viewVector.length() < 50 && speed > 10)) {
+				if (slowDownAngle < 0.7 && viewVector.length() < 50 && speed > 10) {
 					if (this.character.controlledObject !== null) {
 						this.setVehicleTriggerAction('reverse', true)
 						this.setVehicleTriggerAction('throttle', false)
 					}
 				}
 
-				if (speed < 1 || this.character.controlledObject.rayCastVehicle.numWheelsOnGround === 0) this.staleTimer += timeStep
+				if (speed < 1 || this.character.controlledObject.rayCastVehicle.numWheelsOnGround === 0)
+					this.staleTimer += timeStep
 				else this.staleTimer = 0
 			}
 		}
@@ -64,13 +65,15 @@ export class FollowPath extends FollowTarget implements ICharacterAI {
 				this.character.controlledObject.collision.position = Utility.cannonVector(worldPos)
 				this.character.controlledObject.collision.interpolatedPosition = Utility.cannonVector(worldPos)
 				this.character.controlledObject.collision.angularVelocity = new CANNON.Vec3()
-				this.character.controlledObject.collision.quaternion.copy(this.character.controlledObject.collision.initQuaternion)
+				this.character.controlledObject.collision.quaternion.copy(
+					this.character.controlledObject.collision.initQuaternion
+				)
 			}
 			this.staleTimer = 0
 		}
 
 		if (viewVector.length() < this.nodeRadius) {
-			if (this.reverse && (this.targetNode.previousNode !== null)) {
+			if (this.reverse && this.targetNode.previousNode !== null) {
 				super.setTarget(this.targetNode.previousNode.object)
 				this.targetNode = this.targetNode.previousNode
 			} else {
@@ -84,7 +87,6 @@ export class FollowPath extends FollowTarget implements ICharacterAI {
 
 	public setVehicleTriggerAction(action: string, isPressed: boolean) {
 		super.setVehicleTriggerAction(action, isPressed)
-		if (this.character.controlledObject !== null)
-			this.character.controlledObject.triggerAction(action, isPressed)
+		if (this.character.controlledObject !== null) this.character.controlledObject.triggerAction(action, isPressed)
 	}
 }

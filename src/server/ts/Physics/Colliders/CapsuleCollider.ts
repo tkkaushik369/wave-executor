@@ -13,7 +13,7 @@ export class CapsuleCollider implements ICollider {
 			height: 0.5,
 			radius: 0.3,
 			segments: 8,
-			friction: 0.3
+			friction: 0.3,
 		}
 		options = Utility.setDefaults(options, defaults)
 		this.options = options
@@ -23,7 +23,7 @@ export class CapsuleCollider implements ICollider {
 
 		let capsuleBody = new CANNON.Body({
 			mass: options.mass,
-			position: options.position
+			position: options.position,
 		})
 
 		// Compound shape

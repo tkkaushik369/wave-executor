@@ -54,7 +54,7 @@ export class Car extends Vehicle implements IControllable {
 			frictionSlip: 0.8,
 			dampingRelaxation: 2,
 			dampingCompression: 2,
-			rollInfluence: 0.8
+			rollInfluence: 0.8,
 		})
 		// binid functions
 		this.noDirectionPressed = this.noDirectionPressed.bind(this)
@@ -76,14 +76,14 @@ export class Car extends Vehicle implements IControllable {
 		this.readCarData(gltf)
 
 		this.actions = {
-			'throttle': new KeyBinding('KeyW'),
-			'reverse': new KeyBinding('KeyS'),
-			'brake': new KeyBinding('Space'),
-			'left': new KeyBinding('KeyA'),
-			'right': new KeyBinding('KeyD'),
-			'exitVehicle': new KeyBinding('KeyF'),
-			'seat_switch': new KeyBinding('KeyX'),
-			'view': new KeyBinding('KeyV'),
+			throttle: new KeyBinding('KeyW'),
+			reverse: new KeyBinding('KeyS'),
+			brake: new KeyBinding('Space'),
+			left: new KeyBinding('KeyA'),
+			right: new KeyBinding('KeyD'),
+			exitVehicle: new KeyBinding('KeyF'),
+			seat_switch: new KeyBinding('KeyX'),
+			view: new KeyBinding('KeyV'),
 		}
 
 		this.steeringSimulator = new SpringSimulator(60, 10, 0.6)
@@ -101,7 +101,7 @@ export class Car extends Vehicle implements IControllable {
 
 	public update(timeStep: number): void {
 		super.update(timeStep)
-		if (this.world !== null && (this.world.isClient && (this.world.worldId !== null))) return
+		if (this.world !== null && this.world.isClient && this.world.worldId !== null) return
 
 		const tiresHaveContact = this.rayCastVehicle.numWheelsOnGround > 0
 
@@ -119,19 +119,21 @@ export class Car extends Vehicle implements IControllable {
 			this.shiftTimer -= timeStep
 			if (this.shiftTimer < 0) this.shiftTimer = 0
 		} else {
-			// Transmission 
+			// Transmission
 			if (this.actions.reverse.isPressed) {
 				const powerFactor = (this.gearsMaxSpeeds['-1'] - this.speed) / Math.abs(this.gearsMaxSpeeds['-1'])
-				const force = (this.engineForce / this.gear) * (Math.abs(powerFactor) ** 1)
+				const force = (this.engineForce / this.gear) * Math.abs(powerFactor) ** 1
 
 				this.applyEngineForce(force)
 			} else {
-				const powerFactor = (this.gearsMaxSpeeds[this.gear] - this.speed) / (this.gearsMaxSpeeds[this.gear] - this.gearsMaxSpeeds[this.gear - 1])
+				const powerFactor =
+					(this.gearsMaxSpeeds[this.gear] - this.speed) /
+					(this.gearsMaxSpeeds[this.gear] - this.gearsMaxSpeeds[this.gear - 1])
 
 				if (powerFactor < 0.1 && this.gear < this.maxGears) this.shiftUp()
 				else if (this.gear > 1 && powerFactor > 1.2) this.shiftDown()
 				else if (this.actions.throttle.isPressed) {
-					const force = (this.engineForce / this.gear) * (powerFactor ** 1)
+					const force = (this.engineForce / this.gear) * powerFactor ** 1
 					this.applyEngineForce(-force)
 				}
 			}
@@ -147,7 +149,11 @@ export class Car extends Vehicle implements IControllable {
 		}
 
 		// Getting out
-		if (this.characterWantsToExit && this.controllingCharacter !== null && this.controllingCharacter.charState.canLeaveVehicles) {
+		if (
+			this.characterWantsToExit &&
+			this.controllingCharacter !== null &&
+			this.controllingCharacter.charState.canLeaveVehicles
+		) {
 			let speed = this.collision.velocity.length()
 
 			if (speed > 0.1 && speed < 4) {
@@ -188,7 +194,7 @@ export class Car extends Vehicle implements IControllable {
 		airSpinInfluence *= THREE.MathUtils.clamp(this.speed, 0, 1)
 
 		const flipSpeedFactor = THREE.MathUtils.clamp(1 - this.speed, 0, 1)
-		const upFactor = (up.dot(new THREE.Vector3(0, -1, 0)) / 2) + 0.5
+		const upFactor = up.dot(new THREE.Vector3(0, -1, 0)) / 2 + 0.5
 		const flipOverInfluence = flipSpeedFactor * upFactor * 3
 
 		const maxAirSpinMagnitude = 2.0
@@ -198,15 +204,20 @@ export class Car extends Vehicle implements IControllable {
 		const spinVectorForward = Utility.cannonVector(forward.clone())
 		const spinVectorRight = Utility.cannonVector(right.clone())
 
-		const effectiveSpinVectorForward = Utility.cannonVector(forward.clone().multiplyScalar(airSpinAcceleration * (airSpinInfluence + flipOverInfluence)))
-		const effectiveSpinVectorRight = Utility.cannonVector(right.clone().multiplyScalar(airSpinAcceleration * (airSpinInfluence)))
+		const effectiveSpinVectorForward = Utility.cannonVector(
+			forward.clone().multiplyScalar(airSpinAcceleration * (airSpinInfluence + flipOverInfluence))
+		)
+		const effectiveSpinVectorRight = Utility.cannonVector(
+			right.clone().multiplyScalar(airSpinAcceleration * airSpinInfluence)
+		)
 
 		// Right
 		if (this.actions.right.isPressed && !this.actions.left.isPressed) {
 			if (angVel.dot(spinVectorForward) < maxAirSpinMagnitude) {
 				angVel.vadd(effectiveSpinVectorForward, angVel)
 			}
-		} else {	// Left
+		} else {
+			// Left
 			if (this.actions.left.isPressed && !this.actions.right.isPressed) {
 				if (angVel.dot(spinVectorForward) > -maxAirSpinMagnitude) {
 					angVel.vsub(effectiveSpinVectorForward, angVel)
@@ -219,7 +230,8 @@ export class Car extends Vehicle implements IControllable {
 			if (angVel.dot(spinVectorRight) < maxAirSpinMagnitude) {
 				angVel.vadd(effectiveSpinVectorRight, angVel)
 			}
-		} else {	// Backwards
+		} else {
+			// Backwards
 			if (this.actions.reverse.isPressed && !this.actions.throttle.isPressed) {
 				if (angVel.dot(spinVectorRight) > -maxAirSpinMagnitude) {
 					angVel.vsub(effectiveSpinVectorRight, angVel)
@@ -245,8 +257,7 @@ export class Car extends Vehicle implements IControllable {
 
 		// Update doors
 		this.seats.forEach((seat) => {
-			if (seat.door !== null)
-				seat.door.preStepCallback()
+			if (seat.door !== null) seat.door.preStepCallback()
 		})
 	}
 
@@ -296,12 +307,16 @@ export class Car extends Vehicle implements IControllable {
 
 	public addToWorld(world: WorldBase): void {
 		super.addToWorld(world)
-		world.world.addEventListener('preStep', () => { this.physicsPreStep(this.collision, this) })
+		world.world.addEventListener('preStep', () => {
+			this.physicsPreStep(this.collision, this)
+		})
 	}
 
 	public removeFromWorld(world: WorldBase): void {
 		super.removeFromWorld(world)
-		world.world.removeEventListener('preStep', () => { this.physicsPreStep(this.collision, this) })
+		world.world.removeEventListener('preStep', () => {
+			this.physicsPreStep(this.collision, this)
+		})
 	}
 
 	public Out() {
@@ -312,39 +327,40 @@ export class Car extends Vehicle implements IControllable {
 				position: {
 					x: wheel.wheelObject.position.x,
 					y: wheel.wheelObject.position.y,
-					z: wheel.wheelObject.position.z
+					z: wheel.wheelObject.position.z,
 				},
 				quaternion: {
 					x: wheel.wheelObject.quaternion.x,
 					y: wheel.wheelObject.quaternion.y,
 					z: wheel.wheelObject.quaternion.z,
-					w: wheel.wheelObject.quaternion.w
-				}
+					w: wheel.wheelObject.quaternion.w,
+				},
 			})
 		})
 		const doors: { [id: string]: any }[] = []
 		this.seats.forEach((seat) => {
-			if ((seat.door !== null) && (seat.door.doorObject !== null)) doors.push({
-				position: {
-					x: seat.door.doorObject.position.x,
-					y: seat.door.doorObject.position.y,
-					z: seat.door.doorObject.position.z
-				},
-				quaternion: {
-					x: seat.door.doorObject.quaternion.x,
-					y: seat.door.doorObject.quaternion.y,
-					z: seat.door.doorObject.quaternion.z,
-					w: seat.door.doorObject.quaternion.w
-				}
-			})
+			if (seat.door !== null && seat.door.doorObject !== null)
+				doors.push({
+					position: {
+						x: seat.door.doorObject.position.x,
+						y: seat.door.doorObject.position.y,
+						z: seat.door.doorObject.position.z,
+					},
+					quaternion: {
+						x: seat.door.doorObject.quaternion.x,
+						y: seat.door.doorObject.quaternion.y,
+						z: seat.door.doorObject.quaternion.z,
+						w: seat.door.doorObject.quaternion.w,
+					},
+				})
 		})
 		const steeringWheel = {
 			quaternion: {
-				x: (this.steeringWheel === null) ? 0 : this.steeringWheel.quaternion.x,
-				y: (this.steeringWheel === null) ? 0 : this.steeringWheel.quaternion.y,
-				z: (this.steeringWheel === null) ? 0 : this.steeringWheel.quaternion.z,
-				w: (this.steeringWheel === null) ? 0 : this.steeringWheel.quaternion.w
-			}
+				x: this.steeringWheel === null ? 0 : this.steeringWheel.quaternion.x,
+				y: this.steeringWheel === null ? 0 : this.steeringWheel.quaternion.y,
+				z: this.steeringWheel === null ? 0 : this.steeringWheel.quaternion.z,
+				w: this.steeringWheel === null ? 0 : this.steeringWheel.quaternion.w,
+			},
 		}
 
 		msg.data['entity'] = this.entityType
@@ -361,13 +377,13 @@ export class Car extends Vehicle implements IControllable {
 				this.wheels[i].wheelObject.position.set(
 					messages.data.wheels[i].position.x,
 					messages.data.wheels[i].position.y,
-					messages.data.wheels[i].position.z,
+					messages.data.wheels[i].position.z
 				)
 				this.wheels[i].wheelObject.quaternion.set(
 					messages.data.wheels[i].quaternion.x,
 					messages.data.wheels[i].quaternion.y,
 					messages.data.wheels[i].quaternion.z,
-					messages.data.wheels[i].quaternion.w,
+					messages.data.wheels[i].quaternion.w
 				)
 			}
 			for (let i = 0; i < messages.data.doors.length; i++) {
@@ -376,13 +392,13 @@ export class Car extends Vehicle implements IControllable {
 						this.seats[i].door!.doorObject.position.set(
 							messages.data.doors[i].position.x,
 							messages.data.doors[i].position.y,
-							messages.data.doors[i].position.z,
+							messages.data.doors[i].position.z
 						)
 						this.seats[i].door!.doorObject.quaternion.set(
 							messages.data.doors[i].quaternion.x,
 							messages.data.doors[i].quaternion.y,
 							messages.data.doors[i].quaternion.z,
-							messages.data.doors[i].quaternion.w,
+							messages.data.doors[i].quaternion.w
 						)
 					}
 				}
@@ -392,7 +408,7 @@ export class Car extends Vehicle implements IControllable {
 					messages.data.steeringWheel.quaternion.x,
 					messages.data.steeringWheel.quaternion.y,
 					messages.data.steeringWheel.quaternion.z,
-					messages.data.steeringWheel.quaternion.w,
+					messages.data.steeringWheel.quaternion.w
 				)
 			}
 		}

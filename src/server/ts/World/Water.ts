@@ -33,11 +33,10 @@ export interface WaterOptions {
 class Floaters extends THREE.Mesh {
 	pos = new THREE.Vector3()
 	size = new THREE.Vector2(1, 1)
-	
+
 	constructor(geometry?: THREE.BufferGeometry, material?: THREE.Material) {
 		super(geometry, material)
-		if (geometry instanceof THREE.BoxGeometry)
-			this.size.set(geometry.parameters.width, geometry.parameters.depth)
+		if (geometry instanceof THREE.BoxGeometry) this.size.set(geometry.parameters.width, geometry.parameters.depth)
 	}
 }
 
@@ -106,9 +105,10 @@ class Water extends THREE.Mesh implements IWorldEntity, INetwork {
 		const alpha = options.alpha !== undefined ? options.alpha : 1.0
 		const time = options.time !== undefined ? options.time : 0.0
 		const normalSampler = options.waterNormals !== undefined ? options.waterNormals : null
-		const sunDirection = options.sunDirection !== undefined ? options.sunDirection : new THREE.Vector3(0.70707, 0.70707, 0.0)
+		const sunDirection =
+			options.sunDirection !== undefined ? options.sunDirection : new THREE.Vector3(0.70707, 0.70707, 0.0)
 		const sunColor = new THREE.Color(options.sunColor !== undefined ? options.sunColor : 0xffffff)
-		const waterColor = new THREE.Color(options.waterColor !== undefined ? options.waterColor : 0x7F7F7F)
+		const waterColor = new THREE.Color(options.waterColor !== undefined ? options.waterColor : 0x7f7f7f)
 		const eye = options.eye !== undefined ? options.eye : new THREE.Vector3(0, 0, 0)
 		const distortionScale = options.distortionScale !== undefined ? options.distortionScale : 20.0
 		const side = options.side !== undefined ? options.side : THREE.FrontSide
@@ -121,7 +121,7 @@ class Water extends THREE.Mesh implements IWorldEntity, INetwork {
 		const mirrorWorldPosition = new THREE.Vector3()
 		const cameraWorldPosition = new THREE.Vector3()
 		const rotationMatrix = new THREE.Matrix4()
-		const lookAtPosition = new THREE.Vector3(0, 0, - 1)
+		const lookAtPosition = new THREE.Vector3(0, 0, -1)
 		const clipPlane = new THREE.Vector4()
 
 		const view = new THREE.Vector3()
@@ -135,28 +135,27 @@ class Water extends THREE.Mesh implements IWorldEntity, INetwork {
 		const renderTarget = new THREE.WebGLRenderTarget(textureWidth, textureHeight)
 
 		const mirrorShader = {
-
 			name: 'MirrorShader',
 
 			uniforms: THREE.UniformsUtils.merge([
 				THREE.UniformsLib['fog'],
 				THREE.UniformsLib['lights'],
 				{
-					'normalSampler': { value: null },
-					'mirrorSampler': { value: null },
-					'alpha': { value: 1.0 },
-					'time': { value: 0.0 },
-					'size': { value: 1.0 },
-					'distortionScale': { value: 20.0 },
-					'textureMatrix': { value: new THREE.Matrix4() },
-					'sunColor': { value: new THREE.Color(0x7F7F7F) },
-					'sunDirection': { value: new THREE.Vector3(0.70707, 0.70707, 0) },
-					'eye': { value: new THREE.Vector3() },
-					'waterColor': { value: new THREE.Color(0x555555) }
-				}
+					normalSampler: { value: null },
+					mirrorSampler: { value: null },
+					alpha: { value: 1.0 },
+					time: { value: 0.0 },
+					size: { value: 1.0 },
+					distortionScale: { value: 20.0 },
+					textureMatrix: { value: new THREE.Matrix4() },
+					sunColor: { value: new THREE.Color(0x7f7f7f) },
+					sunDirection: { value: new THREE.Vector3(0.70707, 0.70707, 0) },
+					eye: { value: new THREE.Vector3() },
+					waterColor: { value: new THREE.Color(0x555555) },
+				},
 			]),
 
-			vertexShader: /* glsl */`
+			vertexShader: /* glsl */ `
 				uniform mat4 textureMatrix;
 				uniform float time;
 
@@ -182,7 +181,7 @@ class Water extends THREE.Mesh implements IWorldEntity, INetwork {
 				#include <shadowmap_vertex>
 			}`,
 
-			fragmentShader: /* glsl */`
+			fragmentShader: /* glsl */ `
 				uniform sampler2D mirrorSampler;
 				uniform float alpha;
 				uniform float time;
@@ -253,9 +252,8 @@ class Water extends THREE.Mesh implements IWorldEntity, INetwork {
 
 					#include <tonemapping_fragment>
 					#include <colorspace_fragment>
-					#include <fog_fragment>	
-				}`
-
+					#include <fog_fragment>
+				}`,
 		}
 
 		const material = new THREE.ShaderMaterial({
@@ -265,7 +263,7 @@ class Water extends THREE.Mesh implements IWorldEntity, INetwork {
 			fragmentShader: mirrorShader.fragmentShader,
 			lights: true,
 			side: side,
-			fog: fog
+			fog: fog,
 		})
 
 		material.uniforms['mirrorSampler'].value = renderTarget.texture
@@ -283,7 +281,6 @@ class Water extends THREE.Mesh implements IWorldEntity, INetwork {
 		this.material = material
 
 		scope.onBeforeRender = function (renderer, scene, camera) {
-
 			mirrorWorldPosition.setFromMatrixPosition(scope.matrixWorld)
 			cameraWorldPosition.setFromMatrixPosition(camera.matrixWorld)
 
@@ -303,7 +300,7 @@ class Water extends THREE.Mesh implements IWorldEntity, INetwork {
 
 			rotationMatrix.extractRotation(camera.matrixWorld)
 
-			lookAtPosition.set(0, 0, - 1)
+			lookAtPosition.set(0, 0, -1)
 			lookAtPosition.applyMatrix4(rotationMatrix)
 			lookAtPosition.add(cameraWorldPosition)
 
@@ -323,12 +320,7 @@ class Water extends THREE.Mesh implements IWorldEntity, INetwork {
 			mirrorCamera.projectionMatrix.copy(camera.projectionMatrix)
 
 			// Update the texture matrix
-			textureMatrix.set(
-				0.5, 0.0, 0.0, 0.5,
-				0.0, 0.5, 0.0, 0.5,
-				0.0, 0.0, 0.5, 0.5,
-				0.0, 0.0, 0.0, 1.0
-			)
+			textureMatrix.set(0.5, 0.0, 0.0, 0.5, 0.0, 0.5, 0.0, 0.5, 0.0, 0.0, 0.5, 0.5, 0.0, 0.0, 0.0, 1.0)
 			textureMatrix.multiply(mirrorCamera.projectionMatrix)
 			textureMatrix.multiply(mirrorCamera.matrixWorldInverse)
 
@@ -343,7 +335,7 @@ class Water extends THREE.Mesh implements IWorldEntity, INetwork {
 
 			q.x = (Math.sign(clipPlane.x) + projectionMatrix.elements[8]) / projectionMatrix.elements[0]
 			q.y = (Math.sign(clipPlane.y) + projectionMatrix.elements[9]) / projectionMatrix.elements[5]
-			q.z = - 1.0
+			q.z = -1.0
 			q.w = (1.0 + projectionMatrix.elements[10]) / projectionMatrix.elements[14]
 
 			// Calculate the scaled plane vector
@@ -388,11 +380,8 @@ class Water extends THREE.Mesh implements IWorldEntity, INetwork {
 			const viewport = camera.viewport
 
 			if (viewport !== undefined) {
-
 				renderer.state.viewport(viewport)
-
 			}
-
 		}
 
 		this.material.onBeforeCompile = (shader) => {
@@ -438,11 +427,21 @@ class Water extends THREE.Mesh implements IWorldEntity, INetwork {
 				const boxGeometry = new THREE.BoxGeometry(size, 1, size)
 				const box = new Floaters(boxGeometry, material)
 				// box.pos.set((Math.random() * this.geometry.parameters.width) - (this.geometry.parameters.width / 2), 0, (Math.random() * this.geometry.parameters.height) - (this.geometry.parameters.height / 2))
-				box.pos.set((i * this.geometry.parameters.width / n) - (this.geometry.parameters.width / 2 / n), 0, (j * this.geometry.parameters.height / n) - (this.geometry.parameters.height / 2 / n))
+				box.pos.set(
+					(i * this.geometry.parameters.width) / n - this.geometry.parameters.width / 2 / n,
+					0,
+					(j * this.geometry.parameters.height) / n - this.geometry.parameters.height / 2 / n
+				)
 				box.position.copy(box.pos).add(this.position)
 				box.receiveShadow = true
 				this.floatingMeshes.push(box)
-				const shape = new CANNON.Box(new CANNON.Vec3(boxGeometry.parameters.width / 2, boxGeometry.parameters.height / 2, boxGeometry.parameters.depth / 2))
+				const shape = new CANNON.Box(
+					new CANNON.Vec3(
+						boxGeometry.parameters.width / 2,
+						boxGeometry.parameters.height / 2,
+						boxGeometry.parameters.depth / 2
+					)
+				)
 				const body = new CANNON.Body({ mass: 0.0 })
 				body.sleepState = CANNON.BODY_SLEEP_STATES.AWAKE
 				body.addShape(shape)
@@ -504,9 +503,8 @@ class Water extends THREE.Mesh implements IWorldEntity, INetwork {
 
 	removeFromWorld(world: WorldBase): void {
 		if (!_.includes(world.waters, this)) {
-			console.warn('Removing Water from a world in which it isn\'t present.')
-		}
-		else {
+			console.warn("Removing Water from a world in which it isn't present.")
+		} else {
 			this.world = null
 			_.pull(world.waters, this)
 			world.removeSceneObject(this)
@@ -529,19 +527,24 @@ class Water extends THREE.Mesh implements IWorldEntity, INetwork {
 		this.floatingMeshes.forEach((b, i) => {
 			const waves: { [id: string]: any } = this.waves
 			const waveInfo = this.getWaveInfo(b.pos.x, b.pos.z, t)
-			const sizeRatio = (1 / Math.max(b.size.x, b.size.y))
+			const sizeRatio = 1 / Math.max(b.size.x, b.size.y)
 			b.pos.y = waveInfo.position.y
 			b.position.copy(b.pos).add(this.position)
 
 			const quat = new THREE.Quaternion().setFromEuler(
 				new THREE.Euler(waveInfo.normal.x, waveInfo.normal.y, waveInfo.normal.z)
 			)
-			b.quaternion.rotateTowards(quat, (timestep) * sizeRatio * 0.1)
+			b.quaternion.rotateTowards(quat, timestep * sizeRatio * 0.1)
 			if (this.world !== null) {
 				this.world.zeroBody(this.floatingBodies[i])
 			}
 			this.floatingBodies[i].quaternion.set(b.quaternion.x, b.quaternion.y, b.quaternion.z, b.quaternion.w)
-			this.floatingBodies[i].interpolatedQuaternion.set(b.quaternion.x, b.quaternion.y, b.quaternion.z, b.quaternion.w)
+			this.floatingBodies[i].interpolatedQuaternion.set(
+				b.quaternion.x,
+				b.quaternion.y,
+				b.quaternion.z,
+				b.quaternion.w
+			)
 			this.floatingBodies[i].position.set(b.position.x, b.position.y, b.position.z)
 			this.floatingBodies[i].interpolatedPosition.set(b.position.x, b.position.y, b.position.z)
 		})
@@ -573,7 +576,7 @@ class Water extends THREE.Mesh implements IWorldEntity, INetwork {
 			data: {
 				time: this.material.uniforms['time'].value,
 				floaters: floaters,
-			}
+			},
 		}
 	}
 
@@ -583,24 +586,24 @@ class Water extends THREE.Mesh implements IWorldEntity, INetwork {
 			this.floatingBodies[i].position.set(
 				messages.data.floaters[i].position.x,
 				messages.data.floaters[i].position.y,
-				messages.data.floaters[i].position.z,
+				messages.data.floaters[i].position.z
 			)
 			this.floatingBodies[i].quaternion.set(
 				messages.data.floaters[i].quaternion.x,
 				messages.data.floaters[i].quaternion.y,
 				messages.data.floaters[i].quaternion.z,
-				messages.data.floaters[i].quaternion.w,
+				messages.data.floaters[i].quaternion.w
 			)
 			this.floatingMeshes[i].position.set(
 				messages.data.floaters[i].position.x,
 				messages.data.floaters[i].position.y,
-				messages.data.floaters[i].position.z,
+				messages.data.floaters[i].position.z
 			)
 			this.floatingMeshes[i].quaternion.set(
 				messages.data.floaters[i].quaternion.x,
 				messages.data.floaters[i].quaternion.y,
 				messages.data.floaters[i].quaternion.z,
-				messages.data.floaters[i].quaternion.w,
+				messages.data.floaters[i].quaternion.w
 			)
 		}
 	}

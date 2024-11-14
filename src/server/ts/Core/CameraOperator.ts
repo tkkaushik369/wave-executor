@@ -37,7 +37,12 @@ export class CameraOperator implements IUpdatable, IInputReceiver {
 
 	public characterCaller: Character | null
 
-	constructor(player: Player, camera: THREE.PerspectiveCamera, sensitivityX: number = 1, sensitivityY: number = sensitivityX * 0.8) {
+	constructor(
+		player: Player,
+		camera: THREE.PerspectiveCamera,
+		sensitivityX: number = 1,
+		sensitivityY: number = sensitivityX * 0.8
+	) {
 		// bind functions
 		this.setSensitivity = this.setSensitivity.bind(this)
 		this.setRadius = this.setRadius.bind(this)
@@ -60,16 +65,15 @@ export class CameraOperator implements IUpdatable, IInputReceiver {
 		this.onMouseDownPhi = this.phi
 		this.targetRadius = 1
 
-
 		this.actions = {
-			'forward': new KeyBinding('KeyW'),
-			'back': new KeyBinding('KeyS'),
-			'left': new KeyBinding('KeyA'),
-			'right': new KeyBinding('KeyD'),
-			'up': new KeyBinding('KeyE'),
-			'down': new KeyBinding('KeyQ'),
-			'fast': new KeyBinding('ShiftLeft'),
-			'slow': new KeyBinding('ControlLeft'),
+			forward: new KeyBinding('KeyW'),
+			back: new KeyBinding('KeyS'),
+			left: new KeyBinding('KeyA'),
+			right: new KeyBinding('KeyD'),
+			up: new KeyBinding('KeyE'),
+			down: new KeyBinding('KeyQ'),
+			fast: new KeyBinding('ShiftLeft'),
+			slow: new KeyBinding('ControlLeft'),
 		}
 
 		this.characterCaller = null
@@ -95,20 +99,25 @@ export class CameraOperator implements IUpdatable, IInputReceiver {
 
 	public update(timestep: number, unscaledTimeStep: number) {
 		if (this.player.world === null) return
-		if ((this.player.world.isClient && (this.player.world.worldId !== null)) && this.player.world.settings.SyncInputs) return
+		if (this.player.world.isClient && this.player.world.worldId !== null && this.player.world.settings.SyncInputs)
+			return
 		if (this.followMode === true) {
-			const direction = new THREE.Vector3().subVectors(this.camera.position, this.target).normalize();
-			const targetPos = this.target.clone().add(direction.multiplyScalar(this.targetRadius));
+			const direction = new THREE.Vector3().subVectors(this.camera.position, this.target).normalize()
+			const targetPos = this.target.clone().add(direction.multiplyScalar(this.targetRadius))
 
 			// Smoothly update camera position
-			this.camera.position.lerp(targetPos, 0.1);
-			this.camera.lookAt(this.target);
+			this.camera.position.lerp(targetPos, 0.1)
+			this.camera.lookAt(this.target)
 		} else {
 			this.radius = THREE.MathUtils.lerp(this.radius, this.targetRadius, 0.1)
 
-			this.camera.position.x = this.target.x + this.radius * Math.sin(this.theta * Math.PI / 180) * Math.cos(this.phi * Math.PI / 180)
-			this.camera.position.y = this.target.y + this.radius * Math.sin(this.phi * Math.PI / 180)
-			this.camera.position.z = this.target.z + this.radius * Math.cos(this.theta * Math.PI / 180) * Math.cos(this.phi * Math.PI / 180)
+			this.camera.position.x =
+				this.target.x +
+				this.radius * Math.sin((this.theta * Math.PI) / 180) * Math.cos((this.phi * Math.PI) / 180)
+			this.camera.position.y = this.target.y + this.radius * Math.sin((this.phi * Math.PI) / 180)
+			this.camera.position.z =
+				this.target.z +
+				this.radius * Math.cos((this.theta * Math.PI) / 180) * Math.cos((this.phi * Math.PI) / 180)
 			this.camera.updateMatrix()
 			this.camera.lookAt(this.target)
 		}
@@ -180,9 +189,21 @@ export class CameraOperator implements IUpdatable, IInputReceiver {
 		const right = Utility.getRight(this.camera)
 		const forward = Utility.getBack(this.camera)
 
-		this.upVelocity = THREE.MathUtils.lerp(this.upVelocity, +this.actions.up.isPressed - +this.actions.down.isPressed, 0.3)
-		this.forwardVelocity = THREE.MathUtils.lerp(this.forwardVelocity, +this.actions.forward.isPressed - +this.actions.back.isPressed, 0.3)
-		this.rightVelocity = THREE.MathUtils.lerp(this.rightVelocity, +this.actions.right.isPressed - +this.actions.left.isPressed, 0.3)
+		this.upVelocity = THREE.MathUtils.lerp(
+			this.upVelocity,
+			+this.actions.up.isPressed - +this.actions.down.isPressed,
+			0.3
+		)
+		this.forwardVelocity = THREE.MathUtils.lerp(
+			this.forwardVelocity,
+			+this.actions.forward.isPressed - +this.actions.back.isPressed,
+			0.3
+		)
+		this.rightVelocity = THREE.MathUtils.lerp(
+			this.rightVelocity,
+			+this.actions.right.isPressed - +this.actions.left.isPressed,
+			0.3
+		)
 
 		this.target.add(up.multiplyScalar((speedFast - speedSlow) * this.upVelocity))
 		this.target.add(forward.multiplyScalar((speedFast - speedSlow) * this.forwardVelocity))

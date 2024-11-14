@@ -22,7 +22,7 @@ export abstract class SimulatorBase {
 
 	/**
 	 * Generates frames between last simulation call and the current one
-	 * @param {timeStep} timeStep 
+	 * @param {timeStep} timeStep
 	 */
 	public generateFrames(timeStep: number): void {
 		// Update cache

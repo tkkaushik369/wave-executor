@@ -36,10 +36,18 @@ export class ExitingAirplane extends ExitingStateBase {
 			this.character.leaveSeat()
 		} else {
 			let beginningCutoff = 0.3
-			let factor = THREE.MathUtils.clamp(((this.timer / this.animationLength) - beginningCutoff) * (1 / (1 - beginningCutoff)), 0, 1)
+			let factor = THREE.MathUtils.clamp(
+				(this.timer / this.animationLength - beginningCutoff) * (1 / (1 - beginningCutoff)),
+				0,
+				1
+			)
 			let smoothFactor = Utility.easeOutQuad(factor)
 			let lerpPosition = new THREE.Vector3().lerpVectors(this.startPosition, this.endPosition, smoothFactor)
-			if ((this.character.world !== null) && (!this.character.world.isClient || (this.character.world.isClient && (this.character.world.worldId === null)))) {
+			if (
+				this.character.world !== null &&
+				(!this.character.world.isClient ||
+					(this.character.world.isClient && this.character.world.worldId === null))
+			) {
 				this.character.setPosition(lerpPosition.x, lerpPosition.y, lerpPosition.z)
 
 				// Rotation

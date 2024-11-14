@@ -2,7 +2,6 @@ import * as THREE from 'three'
 import { BaseScene } from '../../../BaseScene'
 
 export class TestScene extends BaseScene {
-
 	constructor() {
 		super()
 
@@ -15,7 +14,7 @@ export class TestScene extends BaseScene {
 			segmentHeight: segmentHeight,
 			segmentCount: segmentCount,
 			height: height,
-			halfHeight: halfHeight
+			halfHeight: halfHeight,
 		}
 
 		const geometry = this.createGeometry(sizing)
@@ -46,12 +45,11 @@ export class TestScene extends BaseScene {
 
 		for (let i = 0; i < position.count; i++) {
 			vertex.fromBufferAttribute(position, i)
-			const y = (vertex.y + sizing.halfHeight)
+			const y = vertex.y + sizing.halfHeight
 			const skinIndex = Math.floor(y / sizing.segmentHeight)
 			const skinWeight = (y % sizing.segmentHeight) / sizing.segmentHeight
 			skinIndices.push(skinIndex, skinIndex + 1, 0, 0)
 			skinWeights.push(1 - skinWeight, skinWeight, 0, 0)
-
 		}
 
 		geometry.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(skinIndices, 4))
@@ -64,7 +62,7 @@ export class TestScene extends BaseScene {
 		const bones = []
 		let prevBone = new THREE.Bone()
 		bones.push(prevBone)
-		prevBone.position.y = - sizing.halfHeight
+		prevBone.position.y = -sizing.halfHeight
 		for (let i = 0; i < sizing.segmentCount; i++) {
 			const bone = new THREE.Bone()
 			bone.position.y = sizing.segmentHeight
@@ -80,7 +78,7 @@ export class TestScene extends BaseScene {
 			color: 0x156289,
 			emissive: 0x072534,
 			side: THREE.DoubleSide,
-			flatShading: true
+			flatShading: true,
 		})
 
 		const mesh = new THREE.SkinnedMesh(geometry, material)
@@ -94,20 +92,22 @@ export class TestScene extends BaseScene {
 	}
 
 	private CreateRotationAnimation(name: string, period: number, axis = 'x') {
-		const times = [0, period], values = [0, 360]
+		const times = [0, period],
+			values = [0, 360]
 		const trackName = '.rotation[' + axis + ']'
 		const track = new THREE.NumberKeyframeTrack(trackName, times, values)
 		return new THREE.AnimationClip(name, period, [track])
 	}
 
 	private CreateShakeAnimation(name: string, duration: number, shakeScale: THREE.Vector3) {
-
-		const times = [], values: number[] = [], tmp = new THREE.Vector3()
+		const times = [],
+			values: number[] = [],
+			tmp = new THREE.Vector3()
 		for (let i = 0; i < duration * 10; i++) {
 			times.push(i / 10)
-			tmp.set(Math.random() * 2.0 - 1.0, Math.random() * 2.0 - 1.0, Math.random() * 2.0 - 1.0).
-				multiply(shakeScale).
-				toArray(values, values.length)
+			tmp.set(Math.random() * 2.0 - 1.0, Math.random() * 2.0 - 1.0, Math.random() * 2.0 - 1.0)
+				.multiply(shakeScale)
+				.toArray(values, values.length)
 		}
 
 		const trackName = '.position'

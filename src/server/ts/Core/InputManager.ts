@@ -1,7 +1,7 @@
-import { IUpdatable } from "../Interfaces/IUpdatable"
-import { IInputReceiver } from "../Interfaces/IInputReceiver"
-import { ControlsTypes } from "../Enums/ControlsTypes"
-import { Player } from "./Player"
+import { IUpdatable } from '../Interfaces/IUpdatable'
+import { IInputReceiver } from '../Interfaces/IInputReceiver'
+import { ControlsTypes } from '../Enums/ControlsTypes'
+import { Player } from './Player'
 import { Speaker } from '../World/Spaker'
 
 export class InputManager implements IUpdatable {
@@ -12,7 +12,6 @@ export class InputManager implements IUpdatable {
 	public pointerLock: boolean
 	public isLocked: boolean
 	public inputReceiver: IInputReceiver | null
-
 
 	// callback Controls
 	public controlsCallBack: Function | null
@@ -46,7 +45,6 @@ export class InputManager implements IUpdatable {
 		this.inputReceiver = null
 		this.controlsCallBack = null
 
-
 		if (this.domElement !== null) {
 			// Init event listeners
 			this.domElement.tabIndex = -1
@@ -64,10 +62,8 @@ export class InputManager implements IUpdatable {
 	}
 
 	public update(timestep: number, unscaledTimeStep: number): void {
-		if (this.inputReceiver !== null)
-			this.inputReceiver.inputReceiverUpdate(unscaledTimeStep)
-		else
-			this.setInputReceiver(this.player.cameraOperator)
+		if (this.inputReceiver !== null) this.inputReceiver.inputReceiverUpdate(unscaledTimeStep)
+		else this.setInputReceiver(this.player.cameraOperator)
 	}
 
 	public setInputReceiver(receiver: IInputReceiver): void {
@@ -83,7 +79,6 @@ export class InputManager implements IUpdatable {
 		if (this.domElement === null) return
 		const parentDom = this.domElement.parentElement
 		if (parentDom === null) return
-
 
 		if (document.pointerLockElement === this.domElement) {
 			this.domElement.addEventListener('mousemove', this.onMouseMove, false)
@@ -114,8 +109,7 @@ export class InputManager implements IUpdatable {
 					}
 				})
 			}
-			if (isNotInteracting)
-				this.domElement.requestPointerLock()
+			if (isNotInteracting) this.domElement.requestPointerLock()
 		} else {
 			this.domElement.addEventListener('mousemove', this.onMouseMove, false)
 			this.domElement.addEventListener('mouseup', this.onMouseUp, false)
@@ -156,7 +150,7 @@ export class InputManager implements IUpdatable {
 		this.setMouseWheel(event.deltaY, true)
 	}
 
-	public setControls(controls: { type: ControlsTypes, data: { [id: string]: any } }) {
+	public setControls(controls: { type: ControlsTypes; data: { [id: string]: any } }) {
 		switch (controls.type) {
 			case ControlsTypes.MouseButton:
 				this.setMouseButton(controls.data.code, controls.data.pressed, false)
@@ -175,14 +169,14 @@ export class InputManager implements IUpdatable {
 
 	// controls
 	public setMouseButton(code: string, pressed: boolean, isCallback: boolean) {
-		if (isCallback && ((this.player.world !== null) && (this.player.world.worldId !== null))) {
+		if (isCallback && this.player.world !== null && this.player.world.worldId !== null) {
 			if (this.controlsCallBack !== null) {
 				this.controlsCallBack({
 					type: ControlsTypes.MouseButton,
 					data: {
 						code: code,
 						pressed: pressed,
-					}
+					},
 				})
 			}
 		} else if (this.inputReceiver !== null) {
@@ -191,14 +185,14 @@ export class InputManager implements IUpdatable {
 	}
 
 	public setMouseMove(deltaX: number, deltaY: number, isCallback: boolean) {
-		if (isCallback && ((this.player.world !== null) && (this.player.world.worldId !== null))) {
+		if (isCallback && this.player.world !== null && this.player.world.worldId !== null) {
 			if (this.controlsCallBack !== null) {
 				this.controlsCallBack({
 					type: ControlsTypes.MouseMove,
 					data: {
 						deltaX: deltaX,
 						deltaY: deltaY,
-					}
+					},
 				})
 			}
 		} else if (this.inputReceiver !== null) {
@@ -207,13 +201,13 @@ export class InputManager implements IUpdatable {
 	}
 
 	public setMouseWheel(value: number, isCallback: boolean) {
-		if (isCallback && ((this.player.world !== null) && (this.player.world.worldId !== null))) {
+		if (isCallback && this.player.world !== null && this.player.world.worldId !== null) {
 			if (this.controlsCallBack !== null) {
 				this.controlsCallBack({
 					type: ControlsTypes.MouseWheel,
 					data: {
 						value: value,
-					}
+					},
 				})
 			}
 		} else if (this.inputReceiver !== null) {
@@ -222,7 +216,7 @@ export class InputManager implements IUpdatable {
 	}
 
 	public setKeyboard(code: string, isShift: boolean, pressed: boolean, isCallback: boolean) {
-		if (isCallback && ((this.player.world !== null) && (this.player.world.worldId !== null))) {
+		if (isCallback && this.player.world !== null && this.player.world.worldId !== null) {
 			if (this.controlsCallBack !== null) {
 				this.controlsCallBack({
 					type: ControlsTypes.Keyboard,
@@ -230,7 +224,7 @@ export class InputManager implements IUpdatable {
 						code: code,
 						isShift: isShift,
 						pressed: pressed,
-					}
+					},
 				})
 			}
 		} else if (this.inputReceiver !== null) {

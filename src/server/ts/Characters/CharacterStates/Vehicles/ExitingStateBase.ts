@@ -1,9 +1,7 @@
 import * as THREE from 'three'
 import { Utility } from '../../../Core/Utility'
 
-import {
-	CharacterStateBase,
-} from '../_CharacterStateLibrary'
+import { CharacterStateBase } from '../_CharacterStateLibrary'
 import { Character } from '../../Character'
 import { VehicleSeat } from '../../../Vehicles/VehicleSeat'
 import { Vehicle } from '../../../Vehicles/Vehicle'
@@ -42,11 +40,17 @@ export abstract class ExitingStateBase extends CharacterStateBase {
 	public detachCharacterFromVehicle(): void {
 		this.character.controlledObject = null
 		this.character.resetOrientation()
-		if ((this.character.world !== null) && (!this.character.world.isClient || (this.character.world.isClient && (this.character.world.worldId === null))))
+		if (
+			this.character.world !== null &&
+			(!this.character.world.isClient || (this.character.world.isClient && this.character.world.worldId === null))
+		)
 			this.character.world.scene.attach(this.character)
 		this.character.resetVelocity()
 		this.character.setPhysicsEnabled(true)
-		if ((this.character.world !== null) && (!this.character.world.isClient || (this.character.world.isClient && (this.character.world.worldId === null))))
+		if (
+			this.character.world !== null &&
+			(!this.character.world.isClient || (this.character.world.isClient && this.character.world.worldId === null))
+		)
 			this.character.setPosition(this.character.position.x, this.character.position.y, this.character.position.z)
 		this.character.inputReceiverUpdate(16)
 		this.character.characterCapsule.body.velocity.copy(this.vehicle.rayCastVehicle.chassisBody.velocity)
@@ -58,13 +62,20 @@ export abstract class ExitingStateBase extends CharacterStateBase {
 		forward.y = 0
 		forward.normalize()
 
-		if ((this.character.world !== null) && (!this.character.world.isClient || (this.character.world.isClient && (this.character.world.worldId === null))))
+		if (
+			this.character.world !== null &&
+			(!this.character.world.isClient || (this.character.world.isClient && this.character.world.worldId === null))
+		)
 			this.character.world.scene.attach(this.dummyObj)
 		this.exitPoint.getWorldPosition(this.dummyObj.position)
 		let target = this.dummyObj.position.clone().add(forward)
 		this.dummyObj.lookAt(target)
 		if (this.seat.seatPointObject.parent !== null)
-			if ((this.character.world !== null) && (!this.character.world.isClient || (this.character.world.isClient && (this.character.world.worldId === null))))
+			if (
+				this.character.world !== null &&
+				(!this.character.world.isClient ||
+					(this.character.world.isClient && this.character.world.worldId === null))
+			)
 				this.seat.seatPointObject.parent.attach(this.dummyObj)
 		this.endRotation.copy(this.dummyObj.quaternion)
 	}

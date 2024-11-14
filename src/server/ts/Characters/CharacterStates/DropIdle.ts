@@ -1,15 +1,10 @@
-import {
-	CharacterStateBase,
-	Idle,
-	JumpIdle,
-	StartWalkForward,
-} from './_CharacterStateLibrary'
+import { CharacterStateBase, Idle, JumpIdle, StartWalkForward } from './_CharacterStateLibrary'
 import { ICharacterState } from '../../Interfaces/ICharacterState'
 import { Character } from '../Character'
 
 export class DropIdle extends CharacterStateBase implements ICharacterState {
 	state = 'DropIdle'
-	
+
 	constructor(character: Character) {
 		super(character)
 		// bind functions

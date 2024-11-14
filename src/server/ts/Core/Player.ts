@@ -11,8 +11,8 @@ import { WebSocket } from 'ws'
 import { UiControlsGroup } from '../Enums/UiControlsGroup'
 
 export type PlayerSetMesssage = {
-	sID: string,
-	count: number,
+	sID: string
+	count: number
 }
 
 export class Player implements INetwork {
@@ -26,15 +26,15 @@ export class Player implements INetwork {
 	ping: number
 
 	data: {
-		isWS: boolean,
-		worldId: string | null,
+		isWS: boolean
+		worldId: string | null
 		sun: {
-			elevation: number, // 0 to 90
-			azimuth: number, // -180 to 180
-		},
-		timeScaleTarget: number,
-		cameraPosition: { x: number, y: number, z: number }
-		cameraQuaternion: { x: number, y: number, z: number, w: number }
+			elevation: number // 0 to 90
+			azimuth: number // -180 to 180
+		}
+		timeScaleTarget: number
+		cameraPosition: { x: number; y: number; z: number }
+		cameraQuaternion: { x: number; y: number; z: number; w: number }
 	}
 
 	inputManager: InputManager
@@ -46,7 +46,7 @@ export class Player implements INetwork {
 	character: Character | null
 
 	// client
-	attachments: { obj: THREE.Object3D, addToWorld: boolean }[]
+	attachments: { obj: THREE.Object3D; addToWorld: boolean }[]
 
 	constructor(sID: string, camera: THREE.PerspectiveCamera, domElement: HTMLElement | null) {
 		// bind functions
@@ -97,24 +97,24 @@ export class Player implements INetwork {
 		if (this.world === null) return
 		const world = this.world
 		// this.setSpawn(new THREE.Vector3(0, 17, -5), false) // for testing
-		this.world.scenarios.forEach((sc => {
+		this.world.scenarios.forEach((sc) => {
 			if (world.lastScenarioID === sc.name) {
 				if (sc.playerPosition !== null) {
 					this.setSpawn(sc.playerPosition, false)
 				}
 			}
-		}))
+		})
 	}
 
 	public setSpawn(pos: THREE.Vector3, isPlayerNearVehicle: boolean, deg?: number) {
 		let spawnPlayer = new THREE.Object3D()
 		spawnPlayer.userData = {
-			name: this.uID + "_character",
-			data: "spawn",
-			type: "player",
+			name: this.uID + '_character',
+			data: 'spawn',
+			type: 'player',
 		}
 		spawnPlayer.position.copy(pos)
-		if (isPlayerNearVehicle && (deg !== undefined)) {
+		if (isPlayerNearVehicle && deg !== undefined) {
 			const angle = deg * (Math.PI / 180)
 			const dist = 1
 			spawnPlayer.rotateY(angle)
@@ -143,18 +143,15 @@ export class Player implements INetwork {
 			this.character.takeControl()
 		}
 		this.attachments.forEach((obj) => {
-			if (obj.addToWorld)
-				world.addSceneObject(obj.obj)
-			else if (this.character !== null)
-				this.character.modelContainer.add(obj.obj)
+			if (obj.addToWorld) world.addSceneObject(obj.obj)
+			else if (this.character !== null) this.character.modelContainer.add(obj.obj)
 		})
 	}
 	public removeUser(exworld: WorldBase | null) {
 		if (this.world === null) return
 		const world = this.world
 		this.attachments.forEach((obj) => {
-			if (obj.addToWorld)
-				world.removeSceneObject(obj.obj)
+			if (obj.addToWorld) world.removeSceneObject(obj.obj)
 			else if (this.character !== null) {
 				/* if (obj.obj instanceof THREE.LOD) {
 					console.log(obj.obj.levels)
@@ -186,16 +183,16 @@ export class Player implements INetwork {
 
 			data: {
 				uiControls: this.uiControls,
-				isWS: (this.ws !== null),
-				worldId: (this.world !== null) ? this.world.worldId : null,
+				isWS: this.ws !== null,
+				worldId: this.world !== null ? this.world.worldId : null,
 				sun: {
 					elevation: this.data.sun.elevation,
-					azimuth: this.data.sun.azimuth
+					azimuth: this.data.sun.azimuth,
 				},
 				timeScaleTarget: this.data.timeScaleTarget,
 				cameraPosition: this.data.cameraPosition,
 				cameraQuaternion: this.data.cameraQuaternion,
-			}
+			},
 		}
 	}
 
@@ -203,13 +200,13 @@ export class Player implements INetwork {
 		this.cameraOperator.camera.position.set(
 			messages.data.cameraPosition.x,
 			messages.data.cameraPosition.y,
-			messages.data.cameraPosition.z,
+			messages.data.cameraPosition.z
 		)
 		this.cameraOperator.camera.quaternion.set(
 			messages.data.cameraQuaternion.x,
 			messages.data.cameraQuaternion.y,
 			messages.data.cameraQuaternion.z,
-			messages.data.cameraQuaternion.w,
+			messages.data.cameraQuaternion.w
 		)
 	}
 }

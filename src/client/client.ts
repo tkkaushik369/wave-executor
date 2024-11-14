@@ -1,11 +1,12 @@
 import './css/main.css'
+import './css/titleBar.css'
 import { Common } from '../server/Common'
 import * as THREE from 'three'
 import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper'
 import { Utility } from '../server/ts/Core/Utility'
 import { io, Socket } from 'socket.io-client'
 import parser from 'socket.io-msgpack-parser'
-import { pack, unpack } from "msgpackr"
+// import { pack, unpack } from "msgpackr"
 import { WorldClient } from './ts/World/WorldClient'
 import { PlayerSetMesssage } from '../server/ts/Core/Player'
 import { PlayerClient } from './ts/Core/PlayerClient'
@@ -16,6 +17,7 @@ import { Communication, DataSender, Packager } from '../server/ts/Enums/Communic
 
 THREE.Cache.enabled = true
 
+const titleBar = document.getElementById('titleBar') as HTMLDivElement
 const pingStats = document.getElementById('pingStats') as HTMLDivElement
 const controls = document.getElementById('controls') as HTMLDivElement
 const controlsMain = document.getElementById('controls-main') as HTMLDivElement
@@ -27,22 +29,23 @@ const chatLogDom = document.getElementById('chat-messages-log') as HTMLInputElem
 const guiMenuDom = document.getElementById('gui-menu') as HTMLInputElement
 const guiMenuUsersDom = document.getElementById('gui-menu-users') as HTMLInputElement
 
-const isElectronApp = Utility.isElectron()
+// const isElectronApp = Utility.isElectron()
 const isAndroid = Utility.deviceState()
 
-if (navigator.userAgent.includes('QtWebEngine') || isElectronApp) {
+/* if (navigator.userAgent.includes('QtWebEngine') || isElectronApp) {
 	document.body.classList.add('bodyTransparent')
 	console.log('transparent')
-}
+} */
 
-if (isElectronApp) {
-	workBox.classList.add('Hide')
-	console.log("isElectron", isElectronApp)
+if (typeof process === 'object') {
+	// workBox.classList.add('Hide')
+	// console.log('isElectron', isElectronApp)
+	if (!(process.env.FRAME_VISBLE !== 'true')) titleBar.style.display = 'none'
 }
 
 if (isAndroid) {
 	controlsMain.style.display = 'block'
-	console.log("isAndroid", isAndroid)
+	console.log('isAndroid', isAndroid)
 }
 
 guiMenuDom.tabIndex = -1
@@ -61,7 +64,6 @@ guiMenuDom.addEventListener('keydown', (e: KeyboardEvent) => {
 })
 
 export default class AppClient {
-
 	private io: Socket | null
 	private ws: WebSocket | null
 	private worldClient: WorldClient
@@ -69,7 +71,7 @@ export default class AppClient {
 	private lastUpdate: number
 
 	private clock: THREE.Clock
-	private bufferData: { delta: number, data: any }[] = []
+	private bufferData: { delta: number; data: any }[] = []
 	private isReplay: boolean = false
 
 	constructor() {
@@ -104,9 +106,15 @@ export default class AppClient {
 		this.clock = new THREE.Clock()
 		this.io = null
 		this.ws = null
-		this.worldClient = new WorldClient(controls, workBox, this.ForSocketLoop, this.ForLaunchMap, this.ForLaunchScenario)
+		this.worldClient = new WorldClient(
+			controls,
+			workBox,
+			this.ForSocketLoop,
+			this.ForLaunchMap,
+			this.ForLaunchScenario
+		)
 		this.worldClient.launchMap(Object.keys(this.worldClient.maps)[0], false, true)
-		this.sID = ""
+		this.sID = ''
 		this.lastUpdate = Date.now()
 
 		this.SetupConnection()
@@ -129,85 +137,86 @@ export default class AppClient {
 			this.ws = null
 		} else if (Common.conn === Communication.WebSocket) {
 			this.io = null
+			const socketURL = (typeof process === 'object' ? 'localhost' : window.location.hostname) + ':3000'
 			if (window.location.protocol.includes('https'))
-				this.ws = new WebSocket("wss://" + window.location.host, 'echo-protocol')
-			else
-				this.ws = new WebSocket("ws://" + window.location.host, 'echo-protocol')
+				this.ws = new WebSocket('wss://' + socketURL, 'echo-protocol')
+			else this.ws = new WebSocket('ws://' + socketURL, 'echo-protocol')
 		}
 
 		// Configuration
 		if (this.io !== null) {
-			this.io.on("connect", this.OnConnect)
-			this.io.on("disconnect", this.OnDisConnect)
-			this.io.on("setID", this.OnSetID)
-			this.io.on("addClient", this.OnAddClient)
-			this.io.on("removeClient", this.OnRemoveClient)
-			this.io.on("update", this.OnUpdate)
-			this.io.on("controls", this.OnControls)
-			this.io.on("map", this.OnMap)
-			this.io.on("scenario", this.OnScenario)
-			this.io.on("message", this.OnMessage)
+			this.io.on('connect', this.OnConnect)
+			this.io.on('disconnect', this.OnDisConnect)
+			this.io.on('setID', this.OnSetID)
+			this.io.on('addClient', this.OnAddClient)
+			this.io.on('removeClient', this.OnRemoveClient)
+			this.io.on('update', this.OnUpdate)
+			this.io.on('controls', this.OnControls)
+			this.io.on('map', this.OnMap)
+			this.io.on('scenario', this.OnScenario)
+			this.io.on('message', this.OnMessage)
 		} else if (this.ws !== null) {
 			const ws = this.ws
-			this.ws.binaryType = "arraybuffer"
-			this.ws.onopen = (event) => { this.OnConnect() }
+			this.ws.binaryType = 'arraybuffer'
+			this.ws.onopen = (event) => {
+				this.OnConnect()
+			}
 			this.ws.onmessage = (event) => {
 				let data = {} as any
-				if (Common.packager === Packager.JSON)
-					data = JSON.parse(event.data)
-				else if (Common.packager === Packager.MsgPacker)
-					data = unpack(new Uint8Array(event.data))
+				if (Common.packager === Packager.JSON) data = JSON.parse(event.data)
+				/* else if (Common.packager === Packager.MsgPacker)
+					data = unpack(new Uint8Array(event.data)) */
 
 				switch (data.type) {
-					case "setID": {
+					case 'setID': {
 						this.OnSetID(data.params, (uID: string, sID: string, worldId: string) => {
 							if (Common.packager === Packager.JSON)
 								ws.send(JSON.stringify({ type: 'setIDCallBack', params: { uID: uID, sID: sID } }))
-							else if (Common.packager === Packager.MsgPacker)
-								ws.send(pack({ type: 'setIDCallBack', params: { uID: uID, sID: sID } }))
+							/* else if (Common.packager === Packager.MsgPacker)
+								ws.send(pack({ type: 'setIDCallBack', params: { uID: uID, sID: sID } })) */
 						})
 						break
 					}
-					case "update": {
+					case 'update': {
 						this.OnUpdate(data.params)
 						break
 					}
-					case "ForSocketLoopCallBack": {
+					case 'ForSocketLoopCallBack': {
 						this.ForSocketLoopCallBack()
 						if (Common.sender === DataSender.PingPong) {
 							this.OnUpdate(data.params)
 						}
 						break
 					}
-					case "controls": {
+					case 'controls': {
 						this.OnControls(data.params)
 						break
 					}
-					case "map": {
+					case 'map': {
 						this.OnMap(data.params.map)
 						break
 					}
-					case "scenario": {
+					case 'scenario': {
 						this.OnScenario(data.params.scenario)
 						break
 					}
-					case "message": {
+					case 'message': {
 						this.OnMessage(data.params)
 						break
 					}
-					case "addClient": {
+					case 'addClient': {
 						this.OnAddClient(data.params)
 						break
 					}
-					case "removeClient": {
+					case 'removeClient': {
 						this.OnRemoveClient(data.params)
 						break
 					}
-					case "changeCallBack": {
+					case 'changeCallBack': {
 						this.OnChangeCallBack(data.params)
 						break
 					}
-					case "leaveCallBack": {
+					case 'leaveCallBack': {
 						this.OnLeaveCallBack(data.params)
 						break
 					}
@@ -218,14 +227,14 @@ export default class AppClient {
 				}
 			}
 			this.ws.onclose = (event) => {
-				console.log("Close: ", JSON.stringify(event))
+				console.log('Close: ', JSON.stringify(event))
 				this.OnDisConnect(this.sID)
-				setTimeout(this.SetupConnection, 1000);
+				setTimeout(this.SetupConnection, 1000)
 			}
 			this.ws.onerror = (event) => {
-				console.error('Socket encountered error: ', event, 'Closing socket');
-				ws.close();
-			};
+				console.error('Socket encountered error: ', event, 'Closing socket')
+				ws.close()
+			}
 		}
 	}
 
@@ -252,11 +261,9 @@ export default class AppClient {
 						obj.visible = true
 						if (false) {
 							const textureLoader = new THREE.TextureLoader()
-							const texture = textureLoader.load(
-								'./images/uv-test-bw.jpg',
-							)
-							let mat = new THREE.MeshStandardMaterial({ map: texture });
-							(obj as THREE.Mesh).material = mat
+							const texture = textureLoader.load('./images/uv-test-bw.jpg')
+							let mat = new THREE.MeshStandardMaterial({ map: texture })
+							;(obj as THREE.Mesh).material = mat
 							this.worldClient.scene.add(new VertexNormalsHelper(obj, 0.1, 0x00ff00))
 						}
 					}
@@ -283,31 +290,30 @@ export default class AppClient {
 
 		setTimeout(() => {
 			this.PlayReplay(inx + 1)
-		}, (buff.delta * 1000) - 10)
+		}, buff.delta * 1000 - 10)
 	}
 
 	private OnConnect() {
-		console.log("Connected")
-		this.worldClient.stats.dom.classList.remove("noPing")
-		this.worldClient.stats.dom.classList.add("ping")
+		console.log('Connected')
+		this.worldClient.stats.dom.classList.remove('noPing')
+		this.worldClient.stats.dom.classList.add('ping')
 	}
 
 	private OnDisConnect(str: string | null, desc?: Error | { description: string }) {
 		if (str !== null) {
-			console.log("Disconnect: " + str + ", Reason: " + desc)
-			this.worldClient.stats.dom.classList.remove("ping")
-			this.worldClient.stats.dom.classList.add("noPing")
+			console.log('Disconnect: ' + str + ', Reason: ' + desc)
+			this.worldClient.stats.dom.classList.remove('ping')
+			this.worldClient.stats.dom.classList.add('noPing')
 		}
 
 		let clearWorld = true
-		if ((desc !== undefined) && !(desc instanceof Error) && (desc.description == 'keepData')) clearWorld = false
+		if (desc !== undefined && !(desc instanceof Error) && desc.description == 'keepData') clearWorld = false
 
 		Object.keys(this.worldClient.users).forEach((sID) => {
 			if (this.worldClient.users[sID] !== undefined) {
 				if (str === null) {
 					this.worldClient.users[sID].removeUser(this.worldClient)
-					if (this.sID !== sID)
-						delete this.worldClient.users[sID]
+					if (this.sID !== sID) delete this.worldClient.users[sID]
 				}
 			}
 		})
@@ -320,19 +326,27 @@ export default class AppClient {
 
 	private OnSetID(message: PlayerSetMesssage, callBack: Function) {
 		let caller = () => {
-			const UID: string = "Player_" + message.count
+			const UID: string = 'Player_' + message.count
 			/* {
 				this.worldClient.worldId = "unjoin"
 				this.worldClient.settings.SyncInputs = false
 			} */
-			this.worldClient.player = new PlayerClient(message.sID, this.worldClient.camera, this.worldClient.renderer.domElement, true)
+			this.worldClient.player = new PlayerClient(
+				message.sID,
+				this.worldClient.camera,
+				this.worldClient.renderer.domElement,
+				true
+			)
 			this.worldClient.player.setUID(UID)
 			this.sID = this.worldClient.player.sID
 
 			// Initialization
 			this.worldClient.player.inputManager.controlsCallBack = this.ForControls
 			this.worldClient.player.cameraOperator.camera.add(AttachModels.makeCamera())
-			this.worldClient.player.attachments.push({ obj: this.worldClient.player.cameraOperator.camera, addToWorld: true })
+			this.worldClient.player.attachments.push({
+				obj: this.worldClient.player.cameraOperator.camera,
+				addToWorld: true,
+			})
 			this.worldClient.player.cameraOperator.camera.visible = false
 			this.worldClient.addSceneObject(this.worldClient.player.cameraOperator.camera)
 
@@ -344,8 +358,7 @@ export default class AppClient {
 					isPlayerPositionNearVehicle = scenario.isPlayerPositionNearVehicle
 				}
 			})
-			if (playerPosition !== null)
-				this.worldClient.player.setSpawn(playerPosition, isPlayerPositionNearVehicle)
+			if (playerPosition !== null) this.worldClient.player.setSpawn(playerPosition, isPlayerPositionNearVehicle)
 			this.worldClient.player.addUser(this.worldClient)
 
 			console.log(`Username: ${UID}`)
@@ -360,7 +373,7 @@ export default class AppClient {
 		caller()
 	}
 
-	private OnAddClient(messageData: { sID: string, uID: string }) {
+	private OnAddClient(messageData: { sID: string; uID: string }) {
 		if (this.worldClient.users[messageData.sID] !== undefined) return
 
 		const player = new PlayerClient(messageData.sID, Utility.defaultCamera(), null, false)
@@ -378,11 +391,10 @@ export default class AppClient {
 				isPlayerPositionNearVehicle = scenario.isPlayerPositionNearVehicle
 			}
 		})
-		if (playerPosition !== null)
-			player.setSpawn(playerPosition, isPlayerPositionNearVehicle)
+		if (playerPosition !== null) player.setSpawn(playerPosition, isPlayerPositionNearVehicle)
 		player.addUser(this.worldClient)
 
-		console.log("New User: " + player.uID)
+		console.log('New User: ' + player.uID)
 		this.worldClient.users[player.sID] = player
 	}
 
@@ -396,38 +408,38 @@ export default class AppClient {
 	}
 
 	private Set(messages: { [id: string]: any }) {
-		pingStats.innerHTML = "Ping: " + "<br>"
-		guiMenuUsersDom.innerHTML = ""
+		pingStats.innerHTML = 'Ping: ' + '<br>'
+		guiMenuUsersDom.innerHTML = ''
 		let players = 0
 		let validRooms: string[] = []
 
 		Object.keys(messages).forEach((id) => {
 			if (messages[id].sID !== undefined) {
-				pingStats.innerHTML += "[" + messages[id].sID + "] "
+				pingStats.innerHTML += '[' + messages[id].sID + '] '
 				// pingStats.innerHTML += "[" + messages[id].data.worldId + "][" + messages[id].data.isWS + "] "
 				if (messages[id].sID == this.sID) {
 					if (this.lastUpdate < Date.now() - 1000) {
 						this.worldClient.networkStats.update(messages[id].ping, 100)
 						this.lastUpdate = Date.now()
 					}
-					pingStats.innerHTML += "(YOU) "
+					pingStats.innerHTML += '(YOU) '
 				}
-				pingStats.innerHTML += messages[id].uID + ": "
-				pingStats.innerHTML += messages[id].ping + "<br>"
+				pingStats.innerHTML += messages[id].uID + ': '
+				pingStats.innerHTML += messages[id].ping + '<br>'
 			}
 
 			switch (messages[id].msgType) {
 				case MessageTypes.World: {
 					validRooms.push(messages[id].uID)
-					guiMenuUsersDom.innerHTML += "<div>" + messages[id].uID
-					guiMenuUsersDom.innerHTML += "<ul>"
+					guiMenuUsersDom.innerHTML += '<div>' + messages[id].uID
+					guiMenuUsersDom.innerHTML += '<ul>'
 					if (messages[id].users !== undefined) {
 						messages[id].users.forEach((usr: string) => {
-							guiMenuUsersDom.innerHTML += "<li>" + usr + "</li>"
+							guiMenuUsersDom.innerHTML += '<li>' + usr + '</li>'
 						})
 					}
-					guiMenuUsersDom.innerHTML += "</ul>"
-					guiMenuUsersDom.innerHTML += "</div>"
+					guiMenuUsersDom.innerHTML += '</ul>'
+					guiMenuUsersDom.innerHTML += '</div>'
 					break
 				}
 				case MessageTypes.Player: {
@@ -438,7 +450,7 @@ export default class AppClient {
 
 					if (messages[id].data.worldId === null) break
 					if (this.worldClient.users[id] === undefined) {
-						console.log("Undefined Player " + this.worldClient.users[id])
+						console.log('Undefined Player ' + this.worldClient.users[id])
 						break
 					}
 					// World Time Scale
@@ -458,8 +470,7 @@ export default class AppClient {
 							this.worldClient.sunGuiChanged()
 							// console.log(JSON.stringify(messages[id].data.sun))
 						}
-						if (this.worldClient.settings.SyncInputs)
-							this.worldClient.users[id].Set(messages[id])
+						if (this.worldClient.settings.SyncInputs) this.worldClient.users[id].Set(messages[id])
 					} else this.worldClient.users[id].Set(messages[id])
 					break
 				}
@@ -488,14 +499,14 @@ export default class AppClient {
 					break
 				}
 				default: {
-					console.log("Unknown Message: ", messages[id])
+					console.log('Unknown Message: ', messages[id])
 					break
 				}
 			}
 		})
 
-		pingStats.innerHTML += "<br><b>Players: " + players + "</b>"
-		pingStats.innerHTML += "<br><b>Current World: " + this.worldClient.worldId + "</b>"
+		pingStats.innerHTML += '<br><b>Players: ' + players + '</b>'
+		pingStats.innerHTML += '<br><b>Current World: ' + this.worldClient.worldId + '</b>'
 
 		let toRemoveRooms: string[] = []
 		if (validRooms.length > 0) {
@@ -513,7 +524,7 @@ export default class AppClient {
 					const firstChild = this.worldClient.worldsGUIFolder.children[i].element.firstChild
 					if (firstChild !== null) {
 						const name = firstChild.textContent
-						if ((name !== null) && name.includes(wid)) {
+						if (name !== null && name.includes(wid)) {
 							this.worldClient.worldsGUIFolder.children[i].dispose()
 							break
 						}
@@ -525,10 +536,10 @@ export default class AppClient {
 
 		this.worldClient.worldsGUIFolder.children.forEach((gvr) => {
 			const firstChild = gvr.element.firstChild
-			if ((firstChild !== null) && (firstChild.textContent !== null)) {
+			if (firstChild !== null && firstChild.textContent !== null) {
 				let inx = validRooms.indexOf(firstChild.textContent)
 				if (inx != -1) {
-					validRooms.splice(inx, 1);
+					validRooms.splice(inx, 1)
 				}
 			}
 		})
@@ -537,30 +548,34 @@ export default class AppClient {
 			let wid = validRooms.pop()
 			if (wid !== undefined) {
 				this.worldClient.roomCallers[wid] = {
-					'join': () => {
-						if (this.io !== null)
-							this.io.emit('change', wid, this.OnChangeCallBack)
+					join: () => {
+						if (this.io !== null) this.io.emit('change', wid, this.OnChangeCallBack)
 						else if (this.ws !== null) {
 							if (Common.packager === Packager.JSON)
-								this.ws.send(JSON.stringify({ type: 'change', params: { sID: this.sID, worldId: wid } }))
-							else if (Common.packager === Packager.MsgPacker)
-								this.ws.send(pack({ type: 'change', params: { sID: this.sID, worldId: wid } }))
+								this.ws.send(
+									JSON.stringify({ type: 'change', params: { sID: this.sID, worldId: wid } })
+								)
+							/* else if (Common.packager === Packager.MsgPacker)
+								this.ws.send(pack({ type: 'change', params: { sID: this.sID, worldId: wid } })) */
 						}
 					},
-					'leave': () => {
-						if (this.io !== null)
-							this.io.emit('leave', wid, this.OnLeaveCallBack)
+					leave: () => {
+						if (this.io !== null) this.io.emit('leave', wid, this.OnLeaveCallBack)
 						else if (this.ws !== null) {
 							if (Common.packager === Packager.JSON)
 								this.ws.send(JSON.stringify({ type: 'leave', params: { sID: this.sID, worldId: wid } }))
-							else if (Common.packager === Packager.MsgPacker)
-								this.ws.send(pack({ type: 'leave', params: { sID: this.sID, worldId: wid } }))
+							/* else if (Common.packager === Packager.MsgPacker)
+								this.ws.send(pack({ type: 'leave', params: { sID: this.sID, worldId: wid } })) */
 						}
-					}
+					},
 				}
 				let worldFolder = this.worldClient.worldsGUIFolder.addFolder({ title: wid })
-				worldFolder.addButton({ title: 'Join' }).on('click', (ev: any) => { this.worldClient.roomCallers[wid].join() })
-				worldFolder.addButton({ title: 'Leave' }).on('click', (ev: any) => { this.worldClient.roomCallers[wid].leave() })
+				worldFolder.addButton({ title: 'Join' }).on('click', (ev: any) => {
+					this.worldClient.roomCallers[wid].join()
+				})
+				worldFolder.addButton({ title: 'Leave' }).on('click', (ev: any) => {
+					this.worldClient.roomCallers[wid].leave()
+				})
 			}
 		}
 	}
@@ -571,11 +586,13 @@ export default class AppClient {
 		this.Set(messages)
 
 		this.bufferData.push({ delta: delta, data: messages })
-		let time = 0, inx = -1;
+		let time = 0,
+			inx = -1
 		if (this.bufferData.length > 2) {
 			for (let i = this.bufferData.length - 1; i > 0; --i) {
 				time += this.bufferData[i].delta
-				if (time > 15) { // seconds
+				if (time > 15) {
+					// seconds
 					inx = i
 					break
 				}
@@ -588,9 +605,9 @@ export default class AppClient {
 		}
 	}
 
-	private OnControls(controls: { sID: string, type: ControlsTypes, data: { [id: string]: any } }) {
+	private OnControls(controls: { sID: string; type: ControlsTypes; data: { [id: string]: any } }) {
 		if (this.isReplay) return
-		if ((controls.sID === this.sID) && !this.worldClient.settings.SyncInputs) return
+		if (controls.sID === this.sID && !this.worldClient.settings.SyncInputs) return
 		if (this.worldClient.users[controls.sID] !== undefined) {
 			this.worldClient.users[controls.sID].inputManager.setControls(controls)
 		}
@@ -623,35 +640,41 @@ export default class AppClient {
 		chatLogDom.appendChild(messageDiv)
 	}
 
-	private OnChangeCallBack(messageData: { worldId: string, lastMapID: string, lastScenarioID: string, players: { sID: string, uID: string }[] }) {
+	private OnChangeCallBack(messageData: {
+		worldId: string
+		lastMapID: string
+		lastScenarioID: string
+		players: { sID: string; uID: string }[]
+	}) {
 		if (this.worldClient.player === null) return
-		if (this.worldClient.worldId !== null)
-			this.OnDisConnect(null, { description: 'keepData' })
-		else
-			this.OnDisConnect(null)
+		if (this.worldClient.worldId !== null) this.OnDisConnect(null, { description: 'keepData' })
+		else this.OnDisConnect(null)
 		this.worldClient.worldId = messageData.worldId
 		const worldClient = this.worldClient
 		this.worldClient.mapLoadFinishCallBack = () => {
 			worldClient.launchScenario(messageData.lastScenarioID, false)
 
 			setTimeout(() => {
-				if (this.io !== null)
-					this.io.emit("changeFinish", this.worldClient.worldId)
+				if (this.io !== null) this.io.emit('changeFinish', this.worldClient.worldId)
 				else if (this.ws !== null) {
 					if (Common.packager === Packager.JSON)
-						this.ws.send(JSON.stringify({ type: "changeFinish", params: { sID: this.sID, worldId: this.worldClient.worldId } }))
-					else if (Common.packager === Packager.MsgPacker)
-						this.ws.send(pack({ type: "changeFinish", params: { sID: this.sID, worldId: this.worldClient.worldId } }))
+						this.ws.send(
+							JSON.stringify({
+								type: 'changeFinish',
+								params: { sID: this.sID, worldId: this.worldClient.worldId },
+							})
+						)
+					/* else if (Common.packager === Packager.MsgPacker)
+						this.ws.send(pack({ type: "changeFinish", params: { sID: this.sID, worldId: this.worldClient.worldId } })) */
 				}
 			}, 1000)
 			worldClient.mapLoadFinishCallBack = null
 		}
 		this.worldClient.launchMap(messageData.lastMapID, false, false)
 
-
-		messageData.players.forEach(element => {
+		messageData.players.forEach((element) => {
 			this.OnAddClient({ sID: element.sID, uID: element.uID })
-		});
+		})
 	}
 
 	private OnLeaveCallBack(messageData: { worldId: string | null }) {
@@ -667,24 +690,22 @@ export default class AppClient {
 		}
 	}
 
-	private ForControls(controls: { sID: string, type: ControlsTypes, data: { [id: string]: any } }) {
+	private ForControls(controls: { sID: string; type: ControlsTypes; data: { [id: string]: any } }) {
 		if (this.isReplay) return
 		if (this.worldClient.player === null) return
 		controls.sID = this.worldClient.player.sID
 
 		{
-			if (this.io !== null)
-				this.io.emit("controls", controls)
+			if (this.io !== null) this.io.emit('controls', controls)
 			else if (this.ws !== null) {
 				if (Common.packager === Packager.JSON)
-					this.ws.send(JSON.stringify({ type: "controls", params: controls }))
-				else if (Common.packager === Packager.MsgPacker)
-					this.ws.send(pack({ type: "controls", params: controls }))
+					this.ws.send(JSON.stringify({ type: 'controls', params: controls }))
+				/* else if (Common.packager === Packager.MsgPacker)
+					this.ws.send(pack({ type: "controls", params: controls })) */
 			}
 		}
 
-		if (!this.worldClient.settings.SyncInputs)
-			this.worldClient.player.inputManager.setControls(controls)
+		if (!this.worldClient.settings.SyncInputs) this.worldClient.player.inputManager.setControls(controls)
 	}
 
 	private ForLaunchMap(mapName: string) {
@@ -694,13 +715,14 @@ export default class AppClient {
 			return
 		}
 		{
-			if (this.io !== null)
-				this.io.emit("map", mapName)
+			if (this.io !== null) this.io.emit('map', mapName)
 			else if (this.ws !== null) {
 				if (Common.packager === Packager.JSON)
-					this.ws.send(JSON.stringify({ type: "map", params: { sID: this.worldClient.player.sID, map: mapName } }))
-				else if (Common.packager === Packager.MsgPacker)
-					this.ws.send(pack({ type: "map", params: { sID: this.worldClient.player.sID, map: mapName } }))
+					this.ws.send(
+						JSON.stringify({ type: 'map', params: { sID: this.worldClient.player.sID, map: mapName } })
+					)
+				/* else if (Common.packager === Packager.MsgPacker)
+					this.ws.send(pack({ type: "map", params: { sID: this.worldClient.player.sID, map: mapName } })) */
 			}
 		}
 	}
@@ -712,13 +734,17 @@ export default class AppClient {
 			return
 		}
 		{
-			if (this.io !== null)
-				this.io.emit("scenario", scenarioName)
+			if (this.io !== null) this.io.emit('scenario', scenarioName)
 			else if (this.ws !== null)
 				if (Common.packager === Packager.JSON)
-					this.ws.send(JSON.stringify({ type: "scenario", params: { sID: this.worldClient.player.sID, scenario: scenarioName } }))
-				else if (Common.packager === Packager.MsgPacker)
-					this.ws.send(pack({ type: "scenario", params: { sID: this.worldClient.player.sID, scenario: scenarioName } }))
+					this.ws.send(
+						JSON.stringify({
+							type: 'scenario',
+							params: { sID: this.worldClient.player.sID, scenario: scenarioName },
+						})
+					)
+			/* else if (Common.packager === Packager.MsgPacker)
+					this.ws.send(pack({ type: "scenario", params: { sID: this.worldClient.player.sID, scenario: scenarioName } })) */
 		}
 	}
 
@@ -727,13 +753,12 @@ export default class AppClient {
 		const messageData = { sID: this.worldClient.player.sID, message: message }
 
 		{
-			if (this.io !== null)
-				this.io.emit("message", messageData)
+			if (this.io !== null) this.io.emit('message', messageData)
 			else if (this.ws !== null) {
 				if (Common.packager === Packager.JSON)
-					this.ws.send(JSON.stringify({ type: "message", params: messageData }))
-				else if (Common.packager === Packager.MsgPacker)
-					this.ws.send(pack({ type: "message", params: messageData }))
+					this.ws.send(JSON.stringify({ type: 'message', params: messageData }))
+				/* else if (Common.packager === Packager.MsgPacker)
+					this.ws.send(pack({ type: "message", params: messageData })) */
 			}
 		}
 	}
@@ -743,17 +768,15 @@ export default class AppClient {
 		this.worldClient.player.timeStamp = Date.now()
 
 		{
-			if (this.io !== null)
-				this.io.emit("update", this.worldClient.player.Out(), this.ForSocketLoopCallBack)
+			if (this.io !== null) this.io.emit('update', this.worldClient.player.Out(), this.ForSocketLoopCallBack)
 			else if (this.ws !== null) {
 				if (Common.packager === Packager.JSON)
-					this.ws.send(JSON.stringify({ type: "update", params: this.worldClient.player.Out() }))
-				else if (Common.packager === Packager.MsgPacker)
-					this.ws.send(pack({ type: "update", params: this.worldClient.player.Out() }))
+					this.ws.send(JSON.stringify({ type: 'update', params: this.worldClient.player.Out() }))
+				/* else if (Common.packager === Packager.MsgPacker)
+					this.ws.send(pack({ type: "update", params: this.worldClient.player.Out() })) */
 			}
 		}
 	}
-
 
 	private ForSocketLoopCallBack() {
 		if (this.worldClient.player === null) return

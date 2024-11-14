@@ -35,17 +35,17 @@ export class CharacterSpawnPoint implements ISpawnPoint {
 
 			world.add(player)
 
-		/* if (this.userData.type == 'player') {
+			/* if (this.userData.type == 'player') {
 			player.takeControl()
 		} else */ if (this.userData.type == 'character_ai') {
 				let behaviour = new RandomBehaviour(player)
 				player.setBehaviour(behaviour)
 			}
 		}
-		if ((world.lastMapID !== null) && (MapConfig[world.lastMapID] !== undefined)) {
+		if (world.lastMapID !== null && MapConfig[world.lastMapID] !== undefined) {
 			for (let j = 0; j < MapConfig[world.lastMapID].characters.length; j++) {
 				const char = MapConfig[world.lastMapID].characters[j]
-				if (('character' == char.type) /* && (this.subtype == char.subtype) */) {
+				if ('character' == char.type /* && (this.subtype == char.subtype) */) {
 					if (typeof char.objCaller === 'string') {
 						world.getGLTF(char.objCaller, (gltf: any) => {
 							let model = gltf

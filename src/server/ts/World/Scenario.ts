@@ -26,9 +26,9 @@ export class Scenario {
 	constructor(root: THREE.Object3D, world: WorldBase) {
 		this.rootNode = root
 		this.world = world
-		this.name = "_name_"
-		this.descriptionTitle = "_descriptionTitle_"
-		this.descriptionContent = "_descriptionContent_"
+		this.name = '_name_'
+		this.descriptionTitle = '_descriptionTitle_'
+		this.descriptionContent = '_descriptionContent_'
 		this.initialCameraAngle = 0
 		this.playerPosition = null
 		this.isPlayerPositionNearVehicle = false
@@ -62,7 +62,11 @@ export class Scenario {
 		root.traverse((child) => {
 			if (child.hasOwnProperty('userData') && child.userData.hasOwnProperty('data')) {
 				if (child.userData.data === 'spawn') {
-					if (child.userData.type === 'car' || child.userData.type === 'airplane' || child.userData.type === 'heli') {
+					if (
+						child.userData.type === 'car' ||
+						child.userData.type === 'airplane' ||
+						child.userData.type === 'heli'
+					) {
 						let sp = new VehicleSpawnPoint(child)
 						this.spawnPoints.push(sp)
 					} else if (child.userData.type === 'player') {
@@ -88,14 +92,16 @@ export class Scenario {
 		}
 
 		if (this.world.scenarioGUIFolderCallback !== null) {
-			this.world.scenarioGUIFolderCallback.addButton({ title: this.name }).on('click', (ev: any) => { this.world.scenariosCalls[this.name]() })
+			this.world.scenarioGUIFolderCallback.addButton({ title: this.name }).on('click', (ev: any) => {
+				this.world.scenariosCalls[this.name]()
+			})
 		}
 	}
 
 	public launch(world: WorldBase): void {
 		// Spawn Vehicles
 		this.spawnPoints.forEach((sp) => {
-			if (sp.userData.hasOwnProperty('driver') && (sp.userData.driver === 'player')) {
+			if (sp.userData.hasOwnProperty('driver') && sp.userData.driver === 'player') {
 				const pos = Utility.GridPosition(world.users, new THREE.Vector3(), 3, 3, 2)
 				let tot = pos.length
 
@@ -105,31 +111,35 @@ export class Scenario {
 						// console.log(pos[tot-1])
 						vsp.playerData = {
 							player: world.users[sID],
-							position: pos[--tot]
+							position: pos[--tot],
 						}
 						let ent = vsp.spawn(world) // only vehicles
 						if (ent === null) {
-							console.log("Unknown Spawn: ", vsp.userData)
+							console.log('Unknown Spawn: ', vsp.userData)
 						}
 					}
 				})
 			} else {
 				let ent: Character | Vehicle = sp.spawn(world) // only vehicles
 				if (ent === null) {
-					console.log("Unknown Spawn: ", sp.userData)
+					console.log('Unknown Spawn: ', sp.userData)
 				}
 			}
 		})
 
 		// Spawn Players
 		const playerPosition: THREE.Vector3 | null = this.playerPosition
-		if (!this.spawnAlways && (playerPosition !== null)) {
+		if (!this.spawnAlways && playerPosition !== null) {
 			const pos = Utility.GridPosition(world.users, playerPosition)
 			let tot = pos.length
 
 			Object.keys(world.users).forEach((sID) => {
 				if (world.users[sID] !== undefined) {
-					world.users[sID].setSpawn(pos[--tot], this.isPlayerPositionNearVehicle, this.isPlayerPositionNearVehicle ? (this.initialCameraAngle + 180) : 0)
+					world.users[sID].setSpawn(
+						pos[--tot],
+						this.isPlayerPositionNearVehicle,
+						this.isPlayerPositionNearVehicle ? this.initialCameraAngle + 180 : 0
+					)
 					world.users[sID].cameraOperator.theta = this.initialCameraAngle
 					world.users[sID].cameraOperator.phi = 15
 					world.users[sID].addUser(null)

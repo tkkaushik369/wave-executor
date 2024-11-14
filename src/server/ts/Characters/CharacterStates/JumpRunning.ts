@@ -1,7 +1,4 @@
-import {
-	CharacterStateBase,
-	Falling,
-} from './_CharacterStateLibrary'
+import { CharacterStateBase, Falling } from './_CharacterStateLibrary'
 import { ICharacterState } from '../../Interfaces/ICharacterState'
 import { Character } from '../Character'
 

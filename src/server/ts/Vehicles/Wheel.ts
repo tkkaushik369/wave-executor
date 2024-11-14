@@ -16,7 +16,7 @@ export class Wheel {
 
 		if (wheelObject.hasOwnProperty('userData') && wheelObject.userData.hasOwnProperty('data')) {
 			if (wheelObject.userData.hasOwnProperty('steering')) {
-				this.steering = (wheelObject.userData.steering === 'true')
+				this.steering = wheelObject.userData.steering === 'true'
 			}
 
 			if (wheelObject.userData.hasOwnProperty('drive')) {

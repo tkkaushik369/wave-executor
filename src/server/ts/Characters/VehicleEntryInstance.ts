@@ -28,8 +28,7 @@ export class VehicleEntryInstance {
 		let heightDifference = viewVector.y
 		viewVector.y = 0
 		if (this.character.charState.canEnterVehicles && viewVector.length() < 0.2 && heightDifference < 2) {
-			if (this.targetSeat !== null)
-				this.character.enterVehicle(this.targetSeat, this.entryPoint)
+			if (this.targetSeat !== null) this.character.enterVehicle(this.targetSeat, this.entryPoint)
 		}
 	}
 }

@@ -23,29 +23,41 @@ export class SpringSimulator extends SimulatorBase {
 		// Initialize cache by pushing two frames
 		this.cache = [] // At least two frames
 		for (let i = 0; i < 2; i++) {
-			this.cache.push(
-				new SimulationFrame(startPosition, startVelocity),
-			)
+			this.cache.push(new SimulationFrame(startPosition, startVelocity))
 		}
 	}
 
 	/**
 	 * Advances the simulation by given time step
-	 * @param {number} timeStep 
+	 * @param {number} timeStep
 	 */
 	public simulate(timeStep: number): void {
 		// Generate new frames
 		this.generateFrames(timeStep)
 
 		// Return values interpolated between cached frames
-		this.position = THREE.MathUtils.lerp(this.cache[0].position, this.cache[1].position, this.offset / this.frameTime)
-		this.velocity = THREE.MathUtils.lerp(this.cache[0].velocity, this.cache[1].velocity, this.offset / this.frameTime)
+		this.position = THREE.MathUtils.lerp(
+			this.cache[0].position,
+			this.cache[1].position,
+			this.offset / this.frameTime
+		)
+		this.velocity = THREE.MathUtils.lerp(
+			this.cache[0].velocity,
+			this.cache[1].velocity,
+			this.offset / this.frameTime
+		)
 	}
 
 	/**
 	 * Gets another simulation frame
 	 */
 	public getFrame(isLastFrame: boolean): SimulationFrame {
-		return Utility.spring(this.lastFrame().position, this.target, this.lastFrame().velocity, this.mass, this.damping)
+		return Utility.spring(
+			this.lastFrame().position,
+			this.target,
+			this.lastFrame().velocity,
+			this.mass,
+			this.damping
+		)
 	}
 }

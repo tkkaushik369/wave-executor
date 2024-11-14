@@ -12,44 +12,30 @@ import { Player } from './Player'
 export class Utility {
 	static getRight(obj: THREE.Object3D, space: Space = Space.Global): THREE.Vector3 {
 		const matrix = Utility.getMatrix(obj, space)
-		return new THREE.Vector3(
-			matrix.elements[0],
-			matrix.elements[1],
-			matrix.elements[2]
-		)
+		return new THREE.Vector3(matrix.elements[0], matrix.elements[1], matrix.elements[2])
 	}
 
 	static getUp(obj: THREE.Object3D, space: Space = Space.Global): THREE.Vector3 {
 		const matrix = Utility.getMatrix(obj, space)
-		return new THREE.Vector3(
-			matrix.elements[4],
-			matrix.elements[5],
-			matrix.elements[6]
-		)
+		return new THREE.Vector3(matrix.elements[4], matrix.elements[5], matrix.elements[6])
 	}
 
 	static getForward(obj: THREE.Object3D, space: Space = Space.Global): THREE.Vector3 {
 		const matrix = Utility.getMatrix(obj, space)
-		return new THREE.Vector3(
-			matrix.elements[8],
-			matrix.elements[9],
-			matrix.elements[10]
-		)
+		return new THREE.Vector3(matrix.elements[8], matrix.elements[9], matrix.elements[10])
 	}
 
 	static getBack(obj: THREE.Object3D, space: Space = Space.Global): THREE.Vector3 {
 		const matrix = Utility.getMatrix(obj, space)
-		return new THREE.Vector3(
-			-matrix.elements[8],
-			-matrix.elements[9],
-			-matrix.elements[10]
-		)
+		return new THREE.Vector3(-matrix.elements[8], -matrix.elements[9], -matrix.elements[10])
 	}
 
 	static getMatrix(obj: THREE.Object3D, space: Space): THREE.Matrix4 {
 		switch (space) {
-			case Space.Local: return obj.matrix
-			case Space.Global: return obj.matrixWorld
+			case Space.Local:
+				return obj.matrix
+			case Space.Global:
+				return obj.matrixWorld
 		}
 	}
 
@@ -101,7 +87,13 @@ export class Utility {
 		return new SimulationFrame(position, velocity)
 	}
 
-	static springV(source: THREE.Vector3, dest: THREE.Vector3, velocity: THREE.Vector3, mass: number, damping: number): void {
+	static springV(
+		source: THREE.Vector3,
+		dest: THREE.Vector3,
+		velocity: THREE.Vector3,
+		mass: number,
+		damping: number
+	): void {
 		let acceleration = new THREE.Vector3().subVectors(dest, source)
 		acceleration.divideScalar(mass)
 		velocity.add(acceleration)
@@ -110,15 +102,11 @@ export class Utility {
 	}
 
 	static appplyVectorMatrixXZ(a: THREE.Vector3, b: THREE.Vector3): THREE.Vector3 {
-		return new THREE.Vector3(
-			(a.x * b.z + a.z * b.x),
-			b.y,
-			(a.z * b.z + -a.x * b.x)
-		)
+		return new THREE.Vector3(a.x * b.z + a.z * b.x, b.y, a.z * b.z + -a.x * b.x)
 	}
 
 	static haveDifferentSigns(n1: number, n2: number): boolean {
-		return (n1 < 0) !== (n2 < 0)
+		return n1 < 0 !== n2 < 0
 	}
 
 	static getAngleBetweenVectors(v1: THREE.Vector3, v2: THREE.Vector3, dotTreshold: number = 0.0005): number {
@@ -141,7 +129,12 @@ export class Utility {
 		return angle
 	}
 
-	static getSignedAngleBetweenVectors(v1: THREE.Vector3, v2: THREE.Vector3, normal: THREE.Vector3 = new THREE.Vector3(0, 1, 0), dotTreshold: number = 0.0005): number {
+	static getSignedAngleBetweenVectors(
+		v1: THREE.Vector3,
+		v2: THREE.Vector3,
+		normal: THREE.Vector3 = new THREE.Vector3(0, 1, 0),
+		dotTreshold: number = 0.0005
+	): number {
 		let angle = Utility.getAngleBetweenVectors(v1, v2, dotTreshold)
 
 		// Get vector pointing up or down
@@ -218,21 +211,28 @@ export class Utility {
 
 	static isElectron() {
 		// Renderer process
-		if (typeof window !== 'undefined' && typeof window.process === 'object'/*  && window.process.type === 'renderer' */) {
-			return true;
+		if (
+			typeof window !== 'undefined' &&
+			typeof window.process === 'object' /*  && window.process.type === 'renderer' */
+		) {
+			return true
 		}
 
 		// Main process
 		if (typeof process !== 'undefined' && typeof process.versions === 'object' && !!process.versions.electron) {
-			return true;
+			return true
 		}
 
 		// Detect the user agent when the `nodeIntegration` option is set to true
-		if (typeof navigator === 'object' && typeof navigator.userAgent === 'string' && navigator.userAgent.indexOf('Electron') >= 0) {
-			return true;
+		if (
+			typeof navigator === 'object' &&
+			typeof navigator.userAgent === 'string' &&
+			navigator.userAgent.indexOf('Electron') >= 0
+		) {
+			return true
 		}
 
-		return false;
+		return false
 	}
 
 	static deviceState() {
@@ -243,16 +243,24 @@ export class Utility {
 
 	/**
 	 * mode == -1 Y max
-	 * 
+	 *
 	 * mode == 0 square
-	 * 
+	 *
 	 * mode == 1 X Max
 	 */
-	static GridPosition(users: { [id: string]: Player }, position: THREE.Vector3, scaleX: number = 1, scaleY: number = 1, mode: number = 0) {
+	static GridPosition(
+		users: { [id: string]: Player },
+		position: THREE.Vector3,
+		scaleX: number = 1,
+		scaleY: number = 1,
+		mode: number = 0
+	) {
 		let tot = 0
 		let sq = 1
 		Object.keys(users).forEach((sID) => {
-			if (users[sID] !== undefined) { tot += 1 }
+			if (users[sID] !== undefined) {
+				tot += 1
+			}
 		})
 
 		if (mode === 0) {
@@ -268,8 +276,8 @@ export class Utility {
 
 			return pos
 		} else {
-			const sqX = Math.abs((mode > 0) ? mode : Math.ceil(tot / mode))
-			const sqY = Math.abs((mode < 0) ? mode : Math.ceil(tot / mode))
+			const sqX = Math.abs(mode > 0 ? mode : Math.ceil(tot / mode))
+			const sqY = Math.abs(mode < 0 ? mode : Math.ceil(tot / mode))
 			let pos: THREE.Vector3[] = []
 
 			for (let i = 0; i < sqX && tot > 0; i++) {

@@ -1,8 +1,5 @@
 import * as THREE from 'three'
-import {
-	CharacterStateBase,
-	Idle
-} from '../_CharacterStateLibrary'
+import { CharacterStateBase, Idle } from '../_CharacterStateLibrary'
 import { EnteringVehicle } from './_VehicleStateLibrary'
 import { Character } from '../../Character'
 import { VehicleSeat } from '../../../Vehicles/VehicleSeat'
@@ -45,7 +42,10 @@ export class OpenVehicleDoor extends CharacterStateBase {
 		this.character.rotateModel()
 		this.character.setPhysicsEnabled(false)
 
-		if ((this.character.world !== null) && (!this.character.world.isClient || (this.character.world.isClient && (this.character.world.worldId === null))))
+		if (
+			this.character.world !== null &&
+			(!this.character.world.isClient || (this.character.world.isClient && this.character.world.worldId === null))
+		)
 			this.seat.vehicle.attach(this.character)
 
 		this.startPosition.copy(this.character.position)
@@ -64,26 +64,36 @@ export class OpenVehicleDoor extends CharacterStateBase {
 
 		if (this.timer > 0.3 && !this.hasOpenedDoor) {
 			this.hasOpenedDoor = true
-			if (this.seat.door !== null)
-				this.seat.door.open()
+			if (this.seat.door !== null) this.seat.door.open()
 		}
 
 		if (this.animationEnded(timeStep)) {
 			if (this.anyDirection()) {
 				this.character.vehicleEntryInstance = null
 				this.character.setPhysicsEnabled(true)
-				if ((this.character.world !== null) && ((!this.character.world.isClient || (this.character.world.isClient && (this.character.world.worldId === null)))))
+				if (
+					this.character.world !== null &&
+					(!this.character.world.isClient ||
+						(this.character.world.isClient && this.character.world.worldId === null))
+				)
 					this.character.world.scene.attach(this.character)
 				this.character.setState(new Idle(this.character))
 			} else {
 				this.character.setState(new EnteringVehicle(this.character, this.seat, this.entryPoint))
 			}
-		}
-		else {
+		} else {
 			this.factorSimluator.simulate(timeStep)
 
-			let lerpPosition = new THREE.Vector3().lerpVectors(this.startPosition, this.endPosition, this.factorSimluator.position)
-			if ((this.character.world !== null) && (!this.character.world.isClient || (this.character.world.isClient && (this.character.world.worldId === null)))) {
+			let lerpPosition = new THREE.Vector3().lerpVectors(
+				this.startPosition,
+				this.endPosition,
+				this.factorSimluator.position
+			)
+			if (
+				this.character.world !== null &&
+				(!this.character.world.isClient ||
+					(this.character.world.isClient && this.character.world.worldId === null))
+			) {
 				this.character.setPosition(lerpPosition.x, lerpPosition.y, lerpPosition.z)
 				this.character.quaternion.slerp(this.endRotation, this.factorSimluator.position)
 			}

@@ -1,14 +1,9 @@
-import {
-	CharacterStateBase,
-	EndWalk,
-	JumpRunning,
-	Walk,
-} from './_CharacterStateLibrary'
+import { CharacterStateBase, EndWalk, JumpRunning, Walk } from './_CharacterStateLibrary'
 import { Character } from '../Character'
 
 export class Sprint extends CharacterStateBase {
 	state = 'Sprint'
-	
+
 	constructor(character: Character) {
 		super(character)
 		// bind function

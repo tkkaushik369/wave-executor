@@ -1,4 +1,4 @@
-import { MessageTypes } from "../Enums/MessagesTypes";
+import { MessageTypes } from '../Enums/MessagesTypes'
 
 export interface INetwork {
 	uID: string | null

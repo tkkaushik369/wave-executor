@@ -2,7 +2,6 @@ import * as THREE from 'three'
 import { BaseScene } from '../../../BaseScene'
 
 export class Test2Scene extends BaseScene {
-
 	constructor() {
 		super()
 
@@ -12,8 +11,8 @@ export class Test2Scene extends BaseScene {
 			const groundPhy = new THREE.Mesh(new THREE.BoxGeometry())
 			groundPhy.scale.copy(ground.scale).divideScalar(2)
 			groundPhy.userData = {
-				data: "physics",
-				type: "box",
+				data: 'physics',
+				type: 'box',
 			}
 			groundPhy.position.copy(ground.position)
 			groundPhy.quaternion.copy(ground.quaternion)
@@ -24,21 +23,21 @@ export class Test2Scene extends BaseScene {
 			{
 				const scenario1 = new THREE.Object3D()
 				scenario1.userData = {
-					name: "Free roam (default)",
-					data: "scenario",
-					default: "true",
-					desc_title: "Default spawn",
+					name: 'Free roam (default)',
+					data: 'scenario',
+					default: 'true',
+					desc_title: 'Default spawn',
 					camera_angle: 0,
-					desc_content: "Explore the world!"
+					desc_content: 'Explore the world!',
 				}
 
 				{
 					{
 						let spawnPlayer = new THREE.Object3D()
 						spawnPlayer.userData = {
-							name: "user",
-							data: "spawn",
-							type: "player",
+							name: 'user',
+							data: 'spawn',
+							type: 'player',
 						}
 						spawnPlayer.position.set(0, 2, 0)
 
@@ -51,10 +50,10 @@ export class Test2Scene extends BaseScene {
 			{
 				const scenario2 = new THREE.Object3D()
 				scenario2.userData = {
-					name: "default vehicles",
-					data: "scenario",
-					spawn_always: "true",
-					invisible: "true"
+					name: 'default vehicles',
+					data: 'scenario',
+					spawn_always: 'true',
+					invisible: 'true',
 				}
 
 				{
@@ -62,10 +61,10 @@ export class Test2Scene extends BaseScene {
 						let spawnVehicle = new THREE.Object3D()
 						spawnVehicle.position.set(4, 2, 0)
 						spawnVehicle.userData = {
-							data: "spawn",
-							type: "car",
-							subtype: "car_test",
-							name: "car",
+							data: 'spawn',
+							type: 'car',
+							subtype: 'car_test',
+							name: 'car',
 						}
 						scenario2.add(spawnVehicle)
 					}

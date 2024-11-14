@@ -1,11 +1,11 @@
 export abstract class CharacterAIBase {
 	state = 'CharacterAIBase'
-	currentCharacterControl: { action: string, isPressed: boolean }
-	currentVehicleControl: { action: string, isPressed: boolean }
+	currentCharacterControl: { action: string; isPressed: boolean }
+	currentVehicleControl: { action: string; isPressed: boolean }
 
 	constructor() {
-		this.currentCharacterControl = { action: "up", isPressed: true }
-		this.currentVehicleControl = { action: "throttle", isPressed: true }
+		this.currentCharacterControl = { action: 'up', isPressed: true }
+		this.currentVehicleControl = { action: 'throttle', isPressed: true }
 	}
 
 	public setCharacterTriggerAction(action: string, isPressed: boolean) {

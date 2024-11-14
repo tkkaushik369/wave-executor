@@ -1,51 +1,51 @@
 export type UiControlsType = {
-	keys: string[],
+	keys: string[]
 	desc: string
 }[]
 
 const CameraOperator: UiControlsType = [
 	{
 		keys: ['W', 'S', 'A', 'D'],
-		desc: 'Move around'
+		desc: 'Move around',
 	},
 	{
 		keys: ['E', 'Q'],
-		desc: 'Move up / down'
+		desc: 'Move up / down',
 	},
 	{
 		keys: ['Shift'],
-		desc: 'Speed up'
+		desc: 'Speed up',
 	},
 	{
 		keys: ['Shift', '+', 'C'],
-		desc: 'Exit free camera mode'
+		desc: 'Exit free camera mode',
 	},
 ]
 
 const Character: UiControlsType = [
 	{
 		keys: ['W', 'A', 'S', 'D'],
-		desc: 'Movement'
+		desc: 'Movement',
 	},
 	{
 		keys: ['Shift'],
-		desc: 'Sprint'
+		desc: 'Sprint',
 	},
 	{
 		keys: ['Space'],
-		desc: 'Jump'
+		desc: 'Jump',
 	},
 	{
 		keys: ['F', 'or', 'G'],
-		desc: 'Enter vehicle'
+		desc: 'Enter vehicle',
 	},
 	{
 		keys: ['Shift', '+', 'R'],
-		desc: 'Respawn'
+		desc: 'Respawn',
 	},
 	{
 		keys: ['Shift', '+', 'C'],
-		desc: 'Free camera'
+		desc: 'Free camera',
 	},
 ]
 
@@ -57,119 +57,119 @@ const Sitting: UiControlsType = [
 	{
 		keys: ['F'],
 		desc: 'Leave seat',
-	}
+	},
 ]
 
 const Car: UiControlsType = [
 	{
 		keys: ['W', 'S'],
-		desc: 'Accelerate, Brake / Reverse'
+		desc: 'Accelerate, Brake / Reverse',
 	},
 	{
 		keys: ['A', 'D'],
-		desc: 'Steering'
+		desc: 'Steering',
 	},
 	{
 		keys: ['Space'],
-		desc: 'Handbrake'
+		desc: 'Handbrake',
 	},
 	{
 		keys: ['V'],
-		desc: 'View select'
+		desc: 'View select',
 	},
 	{
 		keys: ['F'],
-		desc: 'Exit vehicle'
+		desc: 'Exit vehicle',
 	},
 	{
 		keys: ['Shift', '+', 'R'],
-		desc: 'Respawn'
+		desc: 'Respawn',
 	},
 	{
 		keys: ['Shift', '+', 'C'],
-		desc: 'Free camera'
+		desc: 'Free camera',
 	},
 ]
 
 const Helicopter: UiControlsType = [
 	{
 		keys: ['Shift'],
-		desc: 'Ascend'
+		desc: 'Ascend',
 	},
 	{
 		keys: ['Space'],
-		desc: 'Descend'
+		desc: 'Descend',
 	},
 	{
 		keys: ['W', 'S'],
-		desc: 'Pitch'
+		desc: 'Pitch',
 	},
 	{
 		keys: ['Q', 'E'],
-		desc: 'Yaw'
+		desc: 'Yaw',
 	},
 	{
 		keys: ['A', 'D'],
-		desc: 'Roll'
+		desc: 'Roll',
 	},
 	{
 		keys: ['V'],
-		desc: 'View select'
+		desc: 'View select',
 	},
 	{
 		keys: ['F'],
-		desc: 'Exit vehicle'
+		desc: 'Exit vehicle',
 	},
 	{
 		keys: ['Shift', '+', 'R'],
-		desc: 'Respawn'
+		desc: 'Respawn',
 	},
 	{
 		keys: ['Shift', '+', 'C'],
-		desc: 'Free camera'
+		desc: 'Free camera',
 	},
 ]
 
 const Airplane: UiControlsType = [
 	{
 		keys: ['Shift'],
-		desc: 'Accelerate'
+		desc: 'Accelerate',
 	},
 	{
 		keys: ['Space'],
-		desc: 'Decelerate'
+		desc: 'Decelerate',
 	},
 	{
 		keys: ['W', 'S'],
-		desc: 'Elevators'
+		desc: 'Elevators',
 	},
 	{
 		keys: ['A', 'D'],
-		desc: 'Ailerons'
+		desc: 'Ailerons',
 	},
 	{
 		keys: ['Q', 'E'],
-		desc: 'Rudder / Steering'
+		desc: 'Rudder / Steering',
 	},
 	{
 		keys: ['B'],
-		desc: 'Brake'
+		desc: 'Brake',
 	},
 	{
 		keys: ['V'],
-		desc: 'View select'
+		desc: 'View select',
 	},
 	{
 		keys: ['F'],
-		desc: 'Exit vehicle'
+		desc: 'Exit vehicle',
 	},
 	{
 		keys: ['Shift', '+', 'R'],
-		desc: 'Respawn'
+		desc: 'Respawn',
 	},
 	{
 		keys: ['Shift', '+', 'C'],
-		desc: 'Free camera'
+		desc: 'Free camera',
 	},
 ]
 

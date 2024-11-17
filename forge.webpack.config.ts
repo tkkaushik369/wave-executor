@@ -31,7 +31,7 @@ var config: WebpackPluginConfig = {
 	},
 	port: 3001,
 	devContentSecurityPolicy:
-		"default-src 'self'; connect-src 'self' ws://localhost:3000; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' 'unsafe-inline'",
+		"default-src 'self'; connect-src 'self' ws://localhost:3000 blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' 'unsafe-inline' blob:;",
 	devServer: {
 		hot: true,
 	},

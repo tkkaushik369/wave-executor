@@ -12,7 +12,7 @@ import webpackConfig from './forge.webpack.config'
 const config: ForgeConfig = {
 	packagerConfig: {
 		asar: true,
-		extraResource: ['./src/client/audios', './src/client/images', './src/client/models'],
+		/*extraResource: ['./src/client/audios', './src/client/images', './src/client/models'],	*/
 		// icon: '/path/to/icon' // no file extension required // win and mac
 	},
 	rebuildConfig: {},

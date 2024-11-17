@@ -90,10 +90,10 @@ const createBrowserWindow = (path: string, x?: number, y?: number, devTools?: El
 
 const createWindow = (): void => {
 	// /* progressIntervalWin1 = */ createBrowserWindow(MAIN_WINDOW_WEBPACK_ENTRY)
-	// /* progressIntervalWin1 = */ createBrowserWindow(/* CLIENT_WINDOW_WEBPACK_ENTRY */ 'http://localhost:3000')
+	// /* progressIntervalWin1 = */ createBrowserWindow(CLIENT_WINDOW_WEBPACK_ENTRY)
 
 	/* progressIntervalWin1 = */ createBrowserWindow(MAIN_WINDOW_WEBPACK_ENTRY, 0, 0)
-	/* progressIntervalWin2 = */ createBrowserWindow(/* CLIENT_WINDOW_WEBPACK_ENTRY */ 'http://localhost:3000', 0, 500)
+	/* progressIntervalWin2 = */ createBrowserWindow(CLIENT_WINDOW_WEBPACK_ENTRY, 0, 500)
 }
 
 // This method will be called when Electron has finished

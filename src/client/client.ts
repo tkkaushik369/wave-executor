@@ -41,7 +41,7 @@ if (typeof process === 'object') {
 	// workBox.classList.add('Hide')
 	// console.log('isElectron', isElectronApp)
 	if (!(process.env.FRAME_VISBLE !== 'true')) titleBar.style.display = 'none'
-}
+} else titleBar.style.display = 'none'
 
 if (isAndroid) {
 	controlsMain.style.display = 'block'

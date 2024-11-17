@@ -29,10 +29,10 @@ import fs from 'node:fs'
 // Set the MIME type explicitly
 express.static.mime.define({ 'application/wasm': ['wasm'] })
 
-var isEle = false
+var isDev = false
 if (__dirname.includes('node_modules')) {
 	__dirname = path.resolve(__dirname.split('node_modules')[0], '.webpack/renderer/main_window')
-	isEle = true
+	isDev = true
 }
 
 const port: number = Number(process.env.PORT) || 3000
@@ -99,21 +99,13 @@ export class AppServer extends EventTarget {
 
 		const clientPath = path.resolve(__dirname, '../client_window')
 		this.app = express()
-		if (isEle) {
-			this.app.use('/client_window', express.static(clientPath))
-			this.app.use('/audios', express.static(path.join(clientPath, '../../../src/client/audios')))
-			this.app.use('/images', express.static(path.join(clientPath, '../../../src/client/images')))
-			this.app.use('/models', express.static(path.join(clientPath, '../../../src/client/models')))
-			this.app.get('/', (req, res) => {
-				res.sendFile(path.resolve(clientPath, 'index.html'))
-			})
-		} else {
-			this.app.use('/audios', express.static(path.join(clientPath, '../../../')))
-			this.app.use('/images', express.static(path.join(clientPath, '../../../')))
-			this.app.use('/models', express.static(path.join(clientPath, '../../../')))
-			this.app.use(express.static(path.join(__dirname, '../client')))
-		}
-
+		this.app.use('/client_window', express.static(clientPath))
+		this.app.use('/audios', express.static(path.join(clientPath, 'audios')))
+		this.app.use('/images', express.static(path.join(clientPath, 'images')))
+		this.app.use('/models', express.static(path.join(clientPath, 'models')))
+		this.app.get('/', (req, res) => {
+			res.sendFile(path.resolve(clientPath, 'index.html'))
+		})
 		setInterval(this.ForOutofWorld, 100)
 	}
 

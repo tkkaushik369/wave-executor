@@ -14,15 +14,15 @@ export const plugins = [
 	new CopyPlugin({
 		patterns: [
 			{
-				from: path.resolve(__dirname, './src/client/images'),
+				from: path.resolve(__dirname, '../client/images'),
 				to: path.join(renderer_client_dirname, 'images')
 			},
 			{
-				from: path.resolve(__dirname, './src/client/audios'),
+				from: path.resolve(__dirname, '../client/audios'),
 				to: path.join(renderer_client_dirname, 'audios')
 			},
 			{
-				from: path.resolve(__dirname, './src/client/models'),
+				from: path.resolve(__dirname, '../client/models'),
 				to: path.join(renderer_client_dirname, 'models')
 			},
 		],

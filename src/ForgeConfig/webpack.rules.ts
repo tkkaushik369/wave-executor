@@ -30,9 +30,6 @@ export const rules: Required<ModuleOptions>['rules'] = [
 	},
 	{
 		test: /\.wasm$/,
-		// type: "asset/inline", //  working
-		type: 'asset/resource', //  working
-		// type: 'webassembly/async',
-		// use: 'file-loader',
+		type: 'webassembly/async',
 	},
 ]

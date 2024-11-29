@@ -16,8 +16,8 @@ export const rendererConfig: Configuration = {
 	plugins,
 	resolve: {
 		alias: {
-			three: path.resolve(__dirname, './node_modules/three'),
-			'socket.io': path.resolve(__dirname, 'node_modules/socket.io/client-dist/socket.io.min.js'),
+			three: path.resolve(__dirname, '../../node_modules/three'),
+			'socket.io': path.resolve(__dirname, '../../node_modules/socket.io/client-dist/socket.io.min.js'),
 		},
 		extensions: ['.js', '.ts', '.jsx', '.tsx', '.css', '.json', '.wasm'],
 	},

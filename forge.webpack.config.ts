@@ -1,8 +1,8 @@
-import { WebpackPluginConfig } from './src/plugin-webpack/Config'
+import { WebpackPluginConfig } from './src/PluginWebpack/Config'
 import { merge } from 'webpack-merge'
 import { MainConfig } from './webpack.main.config'
 import { rendererConfig } from './webpack.renderer.config'
-import { RendererTargetType } from './src/plugin-webpack/Config'
+import { RendererTargetType } from './src/PluginWebpack/Config'
 
 var config: WebpackPluginConfig = {
 	mainConfig: merge(MainConfig, {

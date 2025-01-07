@@ -7,7 +7,7 @@ module.exports = merge(common, {
 	devtool: "eval-source-map",
 	devServer: {
 		static: {
-			directory: path.join(__dirname, "../dist/client"),
+			directory: path.join(__dirname, "../dist/client_window"),
 		},
 		hot: true,
 		proxy: [{

@@ -22,6 +22,11 @@ var config: WebpackPluginConfig = {
 				js: './src/electronApp/main_window/renderer.tsx',
 			},
 			{
+				name: 'rapier_window',
+				html: './src/electronApp/rapier_window/index.html',
+				js: './src/electronApp/rapier_window/renderer.ts',
+			},
+			{
 				name: 'client_window',
 				html: './src/client/index.html',
 				js: './src/client/client.ts',

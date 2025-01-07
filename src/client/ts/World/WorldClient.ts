@@ -101,7 +101,7 @@ export class WorldClient extends WorldBase {
 		this.renderer.setSize(this.parentDom.offsetWidth, this.parentDom.offsetHeight)
 		this.renderer.autoClear = false
 		this.renderer.toneMapping = THREE.ACESFilmicToneMapping
-		this.renderer.toneMappingExposure = 0.7
+		this.renderer.toneMappingExposure = 1
 		this.renderer.shadowMap.enabled = true
 		this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
 		if (this.scene.fog !== null) this.renderer.setClearColor(this.scene.fog.color, 0.1)

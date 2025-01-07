@@ -6,6 +6,7 @@ import { app, BrowserWindow, ipcMain, nativeTheme, screen } from 'electron'
 // whether you're running in development or production).
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string
 declare const CLIENT_WINDOW_WEBPACK_ENTRY: string
+declare const RAPIER_WINDOW_WEBPACK_ENTRY: string
 
 const QuitHandle = () => {
 	app.quit()
@@ -91,9 +92,11 @@ const createBrowserWindow = (path: string, x?: number, y?: number, devTools?: El
 const createWindow = (): void => {
 	// /* progressIntervalWin1 = */ createBrowserWindow(MAIN_WINDOW_WEBPACK_ENTRY)
 	// /* progressIntervalWin1 = */ createBrowserWindow(CLIENT_WINDOW_WEBPACK_ENTRY)
+	// /* progressIntervalWin1 = */ createBrowserWindow(RAPIER_WINDOW_WEBPACK_ENTRY)
 
 	/* progressIntervalWin1 = */ createBrowserWindow(MAIN_WINDOW_WEBPACK_ENTRY, 0, 0)
 	/* progressIntervalWin2 = */ createBrowserWindow(CLIENT_WINDOW_WEBPACK_ENTRY, 0, 500)
+	/* progressIntervalWin1 = */ createBrowserWindow(RAPIER_WINDOW_WEBPACK_ENTRY, 620, 0)
 }
 
 // This method will be called when Electron has finished

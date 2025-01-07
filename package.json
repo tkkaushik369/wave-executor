@@ -10,7 +10,7 @@
 		"dev": "concurrently -k \"tsc -p ./src/server -w\" \"nodemon ./dist/server/server.js\" \"webpack serve --config ./src/webpack.dev.js\"",
 		"start-old:server": "node ./dist/server/server.js",
 		"fcm": "node forgeConfigMaker.js",
-		"start": "electron-forge start",
+		"start": "npm run fcm && electron-forge start",
 		"package": "electron-forge package",
 		"make": "electron-forge make",
 		"publish": "electron-forge publish",
@@ -71,6 +71,7 @@
 	},
 	"dependencies": {
 		"@dimforge/rapier3d": "^0.14.0",
+		"@dimforge/rapier3d-compat": "^0.14.0",
 		"@types/jest": "^29.5.14",
 		"@types/react": "^18.3.12",
 		"@types/react-dom": "^18.3.1",

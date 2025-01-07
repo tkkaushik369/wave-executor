@@ -8,7 +8,8 @@ module.exports = {
 		filename: "bundle.js",
 		library: 'Game',
 		libraryTarget: 'umd',
-		path: path.resolve(__dirname, "../dist/client"),
+		publicPath: "../client_window",
+		path: path.resolve(__dirname, "../dist/client_window"),
 	},
 	resolve: {
 		alias: {
@@ -40,19 +41,19 @@ module.exports = {
 			patterns: [
 				/* {
 					from: path.resolve(__dirname, "./client/index.html"),
-					to: path.resolve(__dirname, "../dist/client"),
+					to: path.resolve(__dirname, "../dist/client_window"),
 				}, */
 				{
 					from: path.resolve(__dirname, "./client/images"),
-					to: path.resolve(__dirname, "../dist/client/images"),
+					to: path.resolve(__dirname, "../dist/client_window/images"),
 				},
 				{
 					from: path.resolve(__dirname, "./client/models"),
-					to: path.resolve(__dirname, "../dist/client/models"),
+					to: path.resolve(__dirname, "../dist/client_window/models"),
 				},
 				{
 					from: path.resolve(__dirname, "./client/audios"),
-					to: path.resolve(__dirname, "../dist/client/audios"),
+					to: path.resolve(__dirname, "../dist/client_window/audios"),
 				},
 			],
 		}),

@@ -11,9 +11,9 @@
 		"start:server": "node ./dist/server/server.js",
 		"fcm": "node forgeConfigMaker.js",
 		"start": "npm run fcm && electron-forge start",
-		"package": "electron-forge package",
-		"make": "electron-forge make",
-		"publish": "electron-forge publish",
+		"package": "npm run fcm && electron-forge package",
+		"make": "npm run fcm && electron-forge make",
+		"publish": "npm run fcm && electron-forge publish",
 		"lint": "eslint --ext .ts,.tsx .",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},

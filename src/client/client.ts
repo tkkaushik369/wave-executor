@@ -73,6 +73,7 @@ export default class AppClient {
 	private clock: THREE.Clock
 	private bufferData: { delta: number; data: any }[] = []
 	private isReplay: boolean = false
+	private isWorld: boolean = false
 
 	constructor() {
 		// bind functions
@@ -413,6 +414,16 @@ export default class AppClient {
 		let players = 0
 		let validRooms: string[] = []
 
+		let isActive = false
+		let isChanged = false
+		if (this.worldClient.player !== null)
+			if (this.worldClient.player.world !== null)
+				isActive = this.worldClient.player.world.worldId === null ? false : true
+		if (this.isWorld !== isActive) {
+			this.isWorld = isActive
+			isChanged = true
+		}
+
 		Object.keys(messages).forEach((id) => {
 			if (messages[id].sID !== undefined) {
 				pingStats.innerHTML += '[' + messages[id].sID + '] '
@@ -517,7 +528,13 @@ export default class AppClient {
 			})
 		}
 
-		if (toRemoveRooms.length > 0) {
+		if (isChanged) {
+			Object.keys(this.worldClient.roomCallers).forEach((wid) => {
+				if (!toRemoveRooms.includes(wid)) toRemoveRooms.push(wid)
+			})
+		}
+
+		while (toRemoveRooms.length > 0) {
 			let wid = toRemoveRooms.pop()
 			if (wid !== undefined) {
 				for (let i = 0; i < this.worldClient.worldsGUIFolder.children.length; i++) {
@@ -534,48 +551,57 @@ export default class AppClient {
 			}
 		}
 
-		this.worldClient.worldsGUIFolder.children.forEach((gvr) => {
-			const firstChild = gvr.element.firstChild
-			if (firstChild !== null && firstChild.textContent !== null) {
-				let inx = validRooms.indexOf(firstChild.textContent)
-				if (inx != -1) {
-					validRooms.splice(inx, 1)
+		if (!isChanged) {
+			for (let i = 0; i < this.worldClient.worldsGUIFolder.children.length; i++) {
+				const firstChild = this.worldClient.worldsGUIFolder.children[i].element.firstChild
+				if (firstChild !== null && firstChild.textContent !== null) {
+					let inx = validRooms.indexOf(firstChild.textContent)
+					if (inx != -1) {
+						validRooms.splice(inx, 1)
+					}
 				}
 			}
-		})
+		}
 
 		while (validRooms.length > 0) {
-			let wid = validRooms.pop()
+			const wid = validRooms.pop()
 			if (wid !== undefined) {
-				this.worldClient.roomCallers[wid] = {
-					join: () => {
-						if (this.io !== null) this.io.emit('change', wid, this.OnChangeCallBack)
-						else if (this.ws !== null) {
-							if (Common.packager === Packager.JSON)
-								this.ws.send(
-									JSON.stringify({ type: 'change', params: { sID: this.sID, worldId: wid } })
-								)
-							/* else if (Common.packager === Packager.MsgPacker)
+				if ((isActive && wid === this.worldClient.worldId) || !isActive) {
+					this.worldClient.roomCallers[wid] = {
+						join: () => {
+							if (this.io !== null) this.io.emit('change', wid, this.OnChangeCallBack)
+							else if (this.ws !== null) {
+								if (Common.packager === Packager.JSON)
+									this.ws.send(
+										JSON.stringify({ type: 'change', params: { sID: this.sID, worldId: wid } })
+									)
+								/* else if (Common.packager === Packager.MsgPacker)
 								this.ws.send(pack({ type: 'change', params: { sID: this.sID, worldId: wid } })) */
-						}
-					},
-					leave: () => {
-						if (this.io !== null) this.io.emit('leave', wid, this.OnLeaveCallBack)
-						else if (this.ws !== null) {
-							if (Common.packager === Packager.JSON)
-								this.ws.send(JSON.stringify({ type: 'leave', params: { sID: this.sID, worldId: wid } }))
-							/* else if (Common.packager === Packager.MsgPacker)
+							}
+						},
+						leave: () => {
+							if (this.io !== null) this.io.emit('leave', wid, this.OnLeaveCallBack)
+							else if (this.ws !== null) {
+								if (Common.packager === Packager.JSON)
+									this.ws.send(
+										JSON.stringify({ type: 'leave', params: { sID: this.sID, worldId: wid } })
+									)
+								/* else if (Common.packager === Packager.MsgPacker)
 								this.ws.send(pack({ type: 'leave', params: { sID: this.sID, worldId: wid } })) */
-						}
-					},
+							}
+						},
+					}
+					let worldFolder = this.worldClient.worldsGUIFolder.addFolder({ title: wid })
+					if (!isActive) {
+						worldFolder.addButton({ title: 'Join' + wid }).on('click', (ev: any) => {
+							this.worldClient.roomCallers[wid].join()
+						})
+					} else {
+						worldFolder.addButton({ title: 'Leave' + wid }).on('click', (ev: any) => {
+							this.worldClient.roomCallers[wid].leave()
+						})
+					}
 				}
-				let worldFolder = this.worldClient.worldsGUIFolder.addFolder({ title: wid })
-				worldFolder.addButton({ title: 'Join' }).on('click', (ev: any) => {
-					this.worldClient.roomCallers[wid].join()
-				})
-				worldFolder.addButton({ title: 'Leave' }).on('click', (ev: any) => {
-					this.worldClient.roomCallers[wid].leave()
-				})
 			}
 		}
 	}

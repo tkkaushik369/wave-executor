@@ -176,7 +176,7 @@ export abstract class WorldBase {
 	}
 
 	public getGLTF(path: string, callback: Function) {
-		return this.isClient ? './models/' + path : './dist/client/models/' + path + '.json'
+		return this.isClient ? './models/' + path : './dist/client_window/models/' + path + '.json'
 	}
 
 	public add(worldEntity: IWorldEntity): void {

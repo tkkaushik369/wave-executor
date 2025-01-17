@@ -62,6 +62,11 @@ npm run dev
 
 ### Features
 
+#### 18th January
+
+-   World Creation OneForEach Room Creation Fix (Join and Leave)
+-	Bug Fix
+
 #### 07th January 2025
 
 -   Rapier.js test window added

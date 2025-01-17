@@ -593,11 +593,11 @@ export default class AppClient {
 					}
 					let worldFolder = this.worldClient.worldsGUIFolder.addFolder({ title: wid })
 					if (!isActive) {
-						worldFolder.addButton({ title: 'Join' + wid }).on('click', (ev: any) => {
+						worldFolder.addButton({ title: 'Join' }).on('click', (ev: any) => {
 							this.worldClient.roomCallers[wid].join()
 						})
 					} else {
-						worldFolder.addButton({ title: 'Leave' + wid }).on('click', (ev: any) => {
+						worldFolder.addButton({ title: 'Leave' }).on('click', (ev: any) => {
 							this.worldClient.roomCallers[wid].leave()
 						})
 					}
